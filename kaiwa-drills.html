@@ -1,0 +1,2328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>会話道 — Conversation Drills</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600;800&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --indigo-950:#141F33; --indigo-900:#1B2A41; --indigo-800:#22375A; --indigo-700:#2C4468; --indigo-600:#3A5075;
+    --paper:#F3EFE4; --paper-dim:#C9C6BB;
+    --gold:#E3A857; --gold-dim:#8A6B3B;
+    --moss:#6FA287; --moss-deep:#3E6650;
+    --vermillion:#C1440E; --vermillion-deep:#8C3009;
+    --radius-tile:14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    font-family:'Zen Kaku Gothic New', sans-serif;
+    background:
+      radial-gradient(1200px 600px at 50% -10%, var(--indigo-800), transparent 60%),
+      linear-gradient(180deg, var(--indigo-950) 0%, #101A2C 100%);
+    color:var(--paper); min-height:100%; display:flex; justify-content:center;
+    -webkit-font-smoothing:antialiased;
+  }
+  #app{ width:100%; max-width:480px; min-height:100vh; display:flex; flex-direction:column; position:relative; overflow-x:hidden; }
+  .kanji-font{ font-family:'Shippori Mincho', serif; }
+
+  :focus-visible{ outline:2px solid var(--gold); outline-offset:3px; }
+
+  .tab-header{ position:relative; padding:24px 22px 4px; }
+  .tab-header .ghost-kanji{ position:absolute; right:0; top:-16px; font-size:120px; color:rgba(243,239,228,0.05); }
+  .tab-header h1{ position:relative; font-family:'Shippori Mincho', serif; font-weight:800; font-size:26px; margin:0 0 4px; }
+  .tab-header p{ position:relative; margin:0; color:var(--paper-dim); font-size:14px; line-height:1.55; max-width:34ch; }
+
+  .screen{ flex:1; display:flex; flex-direction:column; padding:8px 22px 20px; animation:fadein .22s ease; }
+  @keyframes fadein{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
+
+  /* ---------- dialect + politeness pills ---------- */
+  .register-row{ display:flex; gap:8px; padding:0 22px; margin:18px 0 6px; }
+  .register-pill{ flex:1; text-align:center; padding:11px 6px; border-radius:12px; border:1.5px solid var(--indigo-600); background:var(--indigo-800); cursor:pointer; font-family:inherit; color:inherit; }
+  .register-pill .rp-label{ font-size:13px; font-weight:800; color:var(--paper-dim); }
+  .register-pill .rp-ja{ font-size:11px; color:var(--paper-dim); margin-top:2px; }
+  /* dialect axis */
+  .register-pill[data-r="standard"].active{ border-color:var(--paper-dim); background:rgba(201,198,187,0.14); }
+  .register-pill[data-r="standard"].active .rp-label{ color:var(--paper); }
+  .register-pill[data-r="kansai"].active{ border-color:var(--vermillion); background:rgba(193,68,14,0.14); }
+  .register-pill[data-r="kansai"].active .rp-label{ color:var(--vermillion); }
+  /* politeness axis */
+  .register-pill[data-p="casual"].active{ border-color:var(--moss); background:rgba(111,162,135,0.14); }
+  .register-pill[data-p="casual"].active .rp-label{ color:var(--moss); }
+  .register-pill[data-p="polite"].active{ border-color:var(--gold); background:rgba(227,168,87,0.14); }
+  .register-pill[data-p="polite"].active .rp-label{ color:var(--gold); }
+  .register-pill[data-p="keigo"].active{ border-color:var(--vermillion-deep); background:rgba(140,48,9,0.14); }
+  .register-pill[data-p="keigo"].active .rp-label{ color:var(--vermillion-deep); }
+  .register-pill.disabled{ opacity:.32; cursor:not-allowed; }
+
+  /* explains which styles fit the chosen scene, and why some pills are greyed out */
+  .setting-note{ margin:10px 22px 0; padding:10px 12px; border-radius:10px; border:1px dashed var(--indigo-600); font-size:12px; line-height:1.55; color:var(--paper-dim); }
+  .setting-note b{ color:var(--paper); font-weight:700; }
+
+  .scenario-list{ display:flex; flex-direction:column; gap:8px; padding:0 22px; }
+  .scenario-row{ display:flex; align-items:center; gap:14px; padding:12px 14px; border-radius:var(--radius-tile); background:var(--indigo-800); border:1.5px solid var(--indigo-700); cursor:pointer; width:100%; text-align:left; font-family:inherit; color:inherit; }
+  .scenario-row.active{ border-color:var(--gold); background:rgba(227,168,87,0.10); }
+  .scenario-row .sc-icon{ width:40px; height:40px; flex:0 0 auto; border-radius:10px; background:var(--indigo-900); border:1px solid var(--indigo-700); display:flex; align-items:center; justify-content:center; font-family:'Shippori Mincho', serif; font-size:19px; color:var(--gold); }
+  .scenario-row.active .sc-icon{ border-color:var(--gold); background:rgba(227,168,87,0.16); }
+  .scenario-row .sc-title{ font-size:14px; font-weight:700; }
+  .scenario-row .sc-ja{ font-size:12px; color:var(--paper-dim); margin-top:1px; }
+  .scenario-row .sc-group-tag{ margin-left:auto; font-size:10px; font-weight:800; letter-spacing:.04em; color:var(--gold); border:1px solid var(--gold-dim); border-radius:999px; padding:3px 8px; flex:0 0 auto; }
+
+  .topic-row{ display:flex; gap:8px; overflow-x:auto; padding:0 22px; margin:14px 0 0; }
+  .topic-chip{
+    flex:0 0 auto; padding:9px 13px; border-radius:999px; border:1.5px solid var(--indigo-600);
+    background:var(--indigo-800); color:var(--paper-dim); font-size:12.5px; font-weight:700; cursor:pointer; white-space:nowrap; font-family:inherit;
+  }
+  .topic-chip.active{ border-color:var(--gold); color:var(--gold); background:rgba(227,168,87,0.12); }
+
+  .start-btn, .primary-btn{
+    display:block; width:100%; text-align:center; padding:16px; border-radius:16px; border:none;
+    background:var(--gold); color:var(--indigo-950); font-weight:900; font-size:16px; cursor:pointer; font-family:inherit;
+    margin-top:22px; box-shadow:0 4px 0 var(--gold-dim);
+  }
+  .start-btn:disabled, .primary-btn:disabled{ background:var(--indigo-700); color:var(--paper-dim); box-shadow:none; cursor:not-allowed; }
+  .start-btn:not(:disabled):active, .primary-btn:not(:disabled):active{ transform:translateY(3px); box-shadow:0 1px 0 var(--gold-dim); }
+  .secondary-btn{ display:block; width:100%; text-align:center; padding:14px; border-radius:16px; border:1.5px solid var(--indigo-600); background:transparent; color:var(--paper); font-weight:700; font-size:15px; cursor:pointer; margin-top:10px; font-family:inherit; }
+
+  .stat-cards{ display:flex; gap:12px; margin:16px 0 4px; }
+  .stat-card{ flex:1; background:var(--indigo-800); border:1px solid var(--indigo-700); border-radius:var(--radius-tile); padding:14px 12px; }
+  .stat-card .num{ font-size:22px; font-weight:900; line-height:1; color:var(--gold); }
+  .stat-card .label{ font-size:12px; color:var(--paper-dim); margin-top:6px; }
+
+  /* ---------- chat screen ---------- */
+  .chat-header{ position:sticky; top:0; z-index:5; display:flex; align-items:center; gap:12px; padding:14px 16px; background:linear-gradient(180deg, var(--indigo-950) 85%, transparent); }
+  .chat-header .icon-btn{ background:none; border:none; color:var(--paper-dim); font-size:20px; cursor:pointer; padding:4px; flex:0 0 auto; }
+  .chat-header .ch-info{ flex:1; min-width:0; }
+  .chat-header .ch-title{ font-size:14px; font-weight:700; }
+  .chat-header .ch-sub{ font-size:11px; color:var(--paper-dim); margin-top:1px; }
+
+  .chat-body{ flex:1; display:flex; flex-direction:column; gap:12px; padding:6px 16px 16px; overflow-y:auto; }
+  .bubble-row{ display:flex; }
+  .bubble-row.assistant{ justify-content:flex-start; }
+  .bubble-row.user{ justify-content:flex-end; }
+  .bubble{ max-width:82%; padding:11px 14px; border-radius:16px; font-size:15px; line-height:1.6; }
+  .bubble-row.assistant .bubble{ background:var(--indigo-800); border:1px solid var(--indigo-700); border-bottom-left-radius:4px; }
+  .bubble-row.user .bubble{ background:rgba(227,168,87,0.16); border:1px solid var(--gold-dim); border-bottom-right-radius:4px; }
+  .bubble .b-jp{ font-family:'Shippori Mincho', serif; }
+  .bubble .b-romaji{ font-size:12px; color:var(--gold); margin-top:5px; }
+  .bubble .b-en{ font-size:12px; color:var(--paper-dim); margin-top:3px; font-style:italic; }
+  .bubble-row.user .bubble .b-romaji{ color:var(--gold-dim); }
+
+  .option-bubble{
+    display:block; width:100%; text-align:right; padding:13px 16px; border-radius:16px;
+    border:1.5px solid var(--indigo-600); background:var(--indigo-800); color:var(--paper);
+    font-size:16px; font-family:'Shippori Mincho', serif; cursor:pointer;
+  }
+  .option-bubble:active{ background:var(--indigo-700); }
+
+  .chat-footer{ padding:10px 16px calc(12px + env(safe-area-inset-bottom)); border-top:1px solid var(--indigo-700); background:rgba(20,31,51,0.92); }
+  .continue-btn{
+    display:block; width:100%; padding:14px; border-radius:14px; border:none;
+    background:var(--gold); color:var(--indigo-950); font-weight:900; font-size:15px; cursor:pointer; font-family:inherit;
+  }
+
+  .results-inline{ text-align:center; padding:6px 4px; }
+  .results-inline .ri-big{ font-family:'Shippori Mincho', serif; font-size:15px; margin-bottom:10px; }
+  .results-inline .ri-stats{ display:flex; gap:10px; margin-bottom:12px; }
+  .results-inline .stat-card{ margin:0; }
+
+  /* ---------- lessons ---------- */
+  .lesson-tabs{ display:flex; gap:8px; padding:0 22px; margin:18px 0 4px; }
+  .lesson-tab{ flex:1; text-align:center; padding:10px 4px; border-radius:12px; border:1.5px solid var(--indigo-600); background:var(--indigo-800); color:var(--paper-dim); font-size:12px; font-weight:800; cursor:pointer; }
+  .lesson-tab.active{ border-color:var(--gold); color:var(--gold); background:rgba(227,168,87,0.12); }
+  .lesson-block{ margin-bottom:22px; }
+  .lesson-block h3{ font-family:'Shippori Mincho', serif; font-size:17px; margin:0 0 8px; }
+  .lesson-block p{ font-size:13.5px; color:var(--paper-dim); line-height:1.7; margin:0 0 10px; }
+  .phrase-table{ display:flex; flex-direction:column; gap:6px; }
+  .phrase-row{ background:var(--indigo-800); border:1px solid var(--indigo-700); border-radius:10px; padding:9px 12px; }
+  .phrase-row .p-jp{ font-family:'Shippori Mincho', serif; font-size:16px; }
+  .phrase-row .p-romaji{ font-size:11px; color:var(--gold); margin-top:2px; }
+  .phrase-row .p-en{ font-size:11.5px; color:var(--paper-dim); margin-top:2px; }
+
+  .mini-table{ display:flex; flex-direction:column; gap:5px; margin-bottom:12px; }
+  .mini-table-row{ display:grid; gap:8px; background:var(--indigo-800); border:1px solid var(--indigo-700); border-radius:8px; padding:8px 10px; }
+  .mini-table-row.mini-table-head{ background:transparent; border:none; padding:0 10px; }
+  .mini-table-row.mini-table-head .mtc{ font-size:10px; font-weight:800; letter-spacing:.04em; color:var(--gold); text-transform:uppercase; }
+  .mini-table .mtc{ font-size:12.5px; color:var(--paper); line-height:1.4; }
+  .mini-table-row:not(.mini-table-head) .mtc:first-child{ font-family:'Shippori Mincho', serif; font-size:14px; }
+  .mini-table.jp-col2 .mini-table-row:not(.mini-table-head) .mtc:nth-child(2){ font-family:'Shippori Mincho', serif; font-size:14px; }
+  .mini-table-row:not(.mini-table-head) .mtc:last-child{ color:var(--paper-dim); font-size:11.5px; font-family:'Zen Kaku Gothic New', sans-serif; }
+
+  /* ---------- compare ---------- */
+  .fc-counter{ text-align:center; color:var(--paper-dim); font-size:13px; font-weight:700; margin:14px 0 10px; }
+  .compare-card{ background:var(--indigo-800); border:1px solid var(--indigo-700); border-radius:20px; padding:22px; }
+  .compare-row{ display:flex; flex-direction:column; gap:10px; }
+  .compare-item{ background:var(--indigo-900); border:1px solid var(--indigo-700); border-radius:12px; padding:12px 14px; }
+  .compare-item .ci-tag{ font-size:10px; font-weight:800; letter-spacing:.05em; margin-bottom:4px; }
+  .compare-item .ci-jp{ font-family:'Shippori Mincho', serif; font-size:17px; }
+  .compare-item .ci-romaji{ font-size:11px; color:var(--paper-dim); margin-top:3px; }
+  .compare-item .ci-en{ font-size:11px; color:var(--paper-dim); font-style:italic; margin-top:1px; }
+  .fc-nav{ display:flex; gap:10px; margin-top:14px; }
+  .fc-nav button{ flex:1; padding:14px; border-radius:14px; border:1.5px solid var(--indigo-600); background:var(--indigo-800); color:var(--paper); font-weight:700; font-size:15px; cursor:pointer; font-family:inherit; }
+  .fc-nav button.next{ background:var(--gold); color:var(--indigo-950); border:none; }
+
+  /* ---------- progress ---------- */
+  .progress-block{ background:var(--indigo-800); border:1px solid var(--indigo-700); border-radius:var(--radius-tile); padding:16px 16px 14px; margin-top:16px; }
+  .progress-block-head{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px; }
+  .progress-block .pb-label{ font-family:'Shippori Mincho', serif; font-size:17px; font-weight:700; }
+  .progress-block .pb-count{ font-size:12px; color:var(--paper-dim); }
+  .seg-bar{ display:flex; height:10px; border-radius:999px; overflow:hidden; background:var(--indigo-700); }
+  .pb-legend{ display:flex; gap:14px; margin-top:10px; flex-wrap:wrap; }
+  .pb-legend span{ font-size:11px; color:var(--paper-dim); display:flex; align-items:center; gap:5px; }
+  .pb-legend i{ display:inline-block; width:8px; height:8px; border-radius:999px; }
+  .mini-row{ display:flex; align-items:center; gap:10px; padding:8px 2px; border-bottom:1px solid var(--indigo-700); }
+  .mini-row:last-child{ border-bottom:none; }
+  .mini-row .mini-sit{ flex:1; min-width:0; font-size:12.5px; color:var(--paper); }
+  .mini-row .mini-tag{ font-size:10px; color:var(--paper-dim); }
+  .mini-row .mini-score{ font-size:12px; color:var(--vermillion); font-weight:800; flex:0 0 auto; }
+  .empty-note{ text-align:center; color:var(--paper-dim); font-size:13px; margin-top:8px; }
+
+  /* ---------- bottom tab bar ---------- */
+  .tabbar{ position:sticky; bottom:0; display:flex; border-top:1px solid var(--indigo-700); background:rgba(20,31,51,0.92); backdrop-filter:blur(6px); padding:8px 8px calc(8px + env(safe-area-inset-bottom)); }
+  .tab-btn{ flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; background:none; border:none; padding:8px 4px; cursor:pointer; color:var(--paper-dim); font-family:inherit; }
+  .tab-btn .tico{ font-family:'Shippori Mincho', serif; font-size:20px; width:34px; height:34px; border-radius:10px; display:flex; align-items:center; justify-content:center; background:var(--indigo-800); border:1px solid var(--indigo-700); }
+  .tab-btn.active{ color:var(--gold); }
+  .tab-btn.active .tico{ border-color:var(--gold); color:var(--gold); background:rgba(227,168,87,0.12); }
+  .tab-btn .tlabel{ font-size:11px; font-weight:700; }
+
+  ::-webkit-scrollbar{ display:none; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* =========================================================
+   DATA — SCENARIOS
+   Scenarios can optionally carry a `topics` list. That marks them
+   as a *group* — e.g. "Phone Call" isn't one fixed conversation,
+   it's a category of situations (booking something, calling in
+   sick, etc.), and it doesn't make sense to pretend otherwise.
+   Scenarios without `topics` are single, self-contained scripts.
+
+   Every scenario (or every topic inside a group) resolves to a
+   SETTING — see SETTINGS below. A topic's own `setting` overrides
+   its parent scenario's, because one group can mix social distances
+   (calling a restaurant vs. calling your boss).
+   ========================================================= */
+const SCENARIOS = [
+  { id:'restaurant', icon:'店', title:'Restaurant', ja:'レストラン', setting:'service', topics:[
+      { id:'ordering', title:'Ordering Food', ja:'注文' },
+      { id:'table', title:'Getting a Table', ja:'席の案内' },
+      { id:'allergy', title:'Food Allergy', ja:'アレルギー' },
+      { id:'wrong_dish', title:'Wrong Dish', ja:'注文の間違い' },
+    ] },
+  { id:'directions', icon:'道', title:'Directions', ja:'道案内', setting:'stranger', topics:[
+      { id:'to_station', title:'Finding the Station', ja:'駅までの道' },
+      { id:'conbini', title:'Finding a Convenience Store', ja:'コンビニ探し' },
+      { id:'how_far', title:'How Far Is It', ja:'距離を聞く' },
+      { id:'lost', title:'Lost and Asking for Help', ja:'道に迷う' },
+    ] },
+  { id:'interview',  icon:'面', title:'Job Interview', ja:'面接', setting:'formal', topics:[
+      { id:'basics', title:'Self-Introduction', ja:'自己紹介' },
+      { id:'strengths', title:'Strengths & Weaknesses', ja:'長所と短所' },
+      { id:'experience', title:'Work Experience', ja:'職歴' },
+      { id:'questions', title:'Questions for the Interviewer', ja:'逆質問' },
+    ] },
+  { id:'shopping',   icon:'服', title:'Shopping', ja:'買い物', setting:'shop', topics:[
+      { id:'sizes', title:'Sizes & Prices', ja:'サイズと値段' },
+      { id:'discount', title:'Asking for a Discount', ja:'値引き交渉' },
+      { id:'return', title:'Returning an Item', ja:'返品' },
+      { id:'gift', title:'Buying a Gift', ja:'プレゼント選び' },
+    ] },
+  { id:'hotel',      icon:'宿', title:'Hotel', ja:'チェックイン', setting:'service', topics:[
+      { id:'checkin', title:'Checking In', ja:'チェックイン' },
+      { id:'request', title:'Requesting Something', ja:'部屋への要望' },
+      { id:'checkout', title:'Checking Out', ja:'チェックアウト' },
+      { id:'problem', title:'Room Problem', ja:'部屋のトラブル' },
+    ] },
+  { id:'friend',     icon:'友', title:'With a Friend', ja:'友達', setting:'friend', topics:[
+      { id:'plans', title:'Making Weekend Plans', ja:'週末の予定' },
+      { id:'lunch', title:'Deciding on Lunch', ja:'お昼どうする' },
+      { id:'late', title:'Running Late', ja:'遅刻の連絡' },
+      { id:'birthday', title:'Planning a Birthday', ja:'誕生日の計画' },
+    ] },
+  { id:'doctor',     icon:'医', title:"Doctor's Visit", ja:'病院', setting:'service', topics:[
+      { id:'fever', title:'Fever Symptoms', ja:'発熱の症状' },
+      { id:'reception', title:'First Visit Reception', ja:'初診受付' },
+      { id:'pharmacy', title:'At the Pharmacy', ja:'薬局にて' },
+      { id:'injury', title:'Minor Injury', ja:'ケガの診察' },
+    ] },
+  { id:'station',    icon:'駅', title:'Train Station', ja:'駅', setting:'service', topics:[
+      { id:'tickets', title:'Buying a Ticket', ja:'切符を買う' },
+      { id:'ic', title:'Charging an IC Card', ja:'ICカードのチャージ' },
+      { id:'transfer', title:'Asking About Transfers', ja:'乗り換え案内' },
+      { id:'shinkansen', title:'Shinkansen Ticket', ja:'新幹線の切符' },
+    ] },
+  { id:'phone',      icon:'電', title:'Phone Call', ja:'電話', setting:'service', topics:[
+      { id:'reservation', title:'Making a Reservation', ja:'予約' },
+      { id:'sick', title:'Calling in Sick', ja:'欠勤の連絡', setting:'formal' },   // you're calling your boss
+      { id:'delivery', title:'Checking a Delivery', ja:'配達の確認' },
+      { id:'wrong_bill', title:'Billing Mistake', ja:'請求の間違い' },
+    ] },
+  { id:'workplace',  icon:'仕', title:'Workplace', ja:'職場', setting:'coworker', topics:[
+      { id:'deadline', title:'Missing a Deadline', ja:'締め切りの相談' },
+      { id:'meeting', title:'Scheduling a Meeting', ja:'会議の日程調整' },
+      { id:'help', title:'Asking for Help', ja:'助けを求める' },
+      { id:'leave', title:'Requesting Time Off', ja:'休暇の申請' },
+    ] },
+  { id:'smalltalk',  icon:'雑', title:'Small Talk', ja:'雑談', setting:'coworker', topics:[
+      { id:'weather', title:'Weather & Weekend', ja:'天気と週末' },
+      { id:'hobbies', title:'Hobbies', ja:'趣味' },
+      { id:'work', title:'Talking About Work', ja:'仕事の話' },
+      { id:'food', title:'Food & Restaurants', ja:'食べ物の話' },
+    ] },
+  { id:'travel',     icon:'旅', title:'Travel Problems', ja:'旅行トラブル', setting:'service', topics:[
+      { id:'missed_train', title:'Missed the Train', ja:'乗り遅れ' },
+      { id:'lost_item', title:'Lost Item', ja:'忘れ物' },
+      { id:'wrong_reservation', title:'Wrong Room/Reservation', ja:'予約の間違い' },
+      { id:'cancelled', title:'Cancelled Flight', ja:'欠航' },
+    ] },
+  { id:'advice',     icon:'相', title:'Asking for Advice', ja:'相談', setting:'coworker', topics:[
+      { id:'tired', title:'Feeling Overworked', ja:'疲れた時の相談' },
+      { id:'career', title:'Changing Jobs', ja:'転職の相談' },
+      { id:'study', title:'Study Struggles', ja:'勉強の悩み' },
+      { id:'moving', title:'Moving House', ja:'引っ越しの相談' },
+    ] },
+  { id:'argument',   icon:'仲', title:'Argument & Making Up', ja:'仲直り', setting:'friend', topics:[
+      { id:'read', title:'Left on Read', ja:'既読無視' },
+      { id:'forgot', title:'Forgot Plans', ja:'約束を忘れた' },
+      { id:'broke', title:'Broke Something Borrowed', ja:'借り物を壊した' },
+      { id:'hurtful', title:'Said Something Hurtful', ja:'きつい一言' },
+    ] },
+  { id:'drinking',   icon:'飲', title:'Drinking Party', ja:'飲み会', setting:'coworker', topics:[
+      { id:'order', title:'Ordering Drinks', ja:'ドリンクの注文' },
+      { id:'pouring', title:'Pouring Etiquette', ja:'お酌のマナー' },
+      { id:'nijikai', title:'Skipping the After-Party', ja:'二次会を断る' },
+      { id:'split', title:'Splitting the Bill', ja:'割り勘' },
+    ] },
+];
+function getScenario(id){ return SCENARIOS.find(s => s.id === id); }
+// The key used to look up SCRIPTS: plain scenario id for simple scenarios,
+// "scenarioId.topicId" for group scenarios.
+function scriptKeyFor(scenarioId, topicId){
+  const scenario = getScenario(scenarioId);
+  return (scenario && scenario.topics) ? `${scenarioId}.${topicId}` : scenarioId;
+}
+function describeScriptKey(key){
+  const [scenarioId, topicId] = key.split('.');
+  const scenario = getScenario(scenarioId);
+  if(!scenario) return { icon:'?', title:key };
+  if(topicId && scenario.topics){
+    const topic = scenario.topics.find(t => t.id === topicId);
+    return { icon: scenario.icon, title: `${scenario.title} · ${topic ? topic.title : topicId}` };
+  }
+  return { icon: scenario.icon, title: scenario.title };
+}
+
+/* =========================================================
+   DATA — DIALECT × POLITENESS, AND SETTINGS
+   Dialect (regional variety) and politeness (formality level) are
+   independent axes. A combo id is `${dialect}_${politeness}`.
+
+   What decides which combos are *natural* is the SETTING: who you're
+   talking to and how close you are. Settings are the single source of
+   truth — a combo being absent from a script now means "not natural
+   here", not "nobody has written it yet" (validateScripts() enforces
+   that the data and the settings agree).
+
+   Each setting has:
+     combos  the combos the learner may practice in this setting
+     partner how the OTHER person speaks. Your choice is about how *you*
+             speak; a waiter doesn't go casual because you did.
+               'match'          the partner mirrors your combo
+               'standard_keigo' a fixed combo (staff, interviewers…)
+               { from: to }     per-combo map; unmapped combos mirror you
+     note    the one-line reason shown under the pills
+   To open a setting to a new style later (say, kansai_polite for
+   service), add it to `combos`, then write those lines — the validator
+   lists exactly which turns are missing.
+   ========================================================= */
+const DIALECTS = [
+  { id:'standard', label:'Standard', ja:'標準語' },
+  { id:'kansai', label:'Kansai-ben', ja:'関西弁' },
+];
+const POLITENESS = [
+  { id:'casual', label:'Casual', ja:'カジュアル' },
+  { id:'polite', label:'Polite', ja:'丁寧' },
+  { id:'keigo', label:'Keigo', ja:'敬語' },
+];
+const SETTINGS = {
+  service:  { label:'Customer ↔ staff',
+              combos:['standard_polite','standard_keigo'],
+              partner:'standard_keigo',
+              note:'Staff and officials speak formally to customers, so casual speech and Kansai-ben are left out here.' },
+  shop:     { label:'Shops & stalls',
+              combos:['standard_polite','standard_keigo','kansai_casual'],
+              partner:'standard_polite',
+              note:'Casual Kansai banter is normal at shops and markets, so it stays available. The clerk still answers politely.' },
+  stranger: { label:'Strangers on the street',
+              combos:['standard_polite','standard_keigo','kansai_casual'],
+              partner:{ standard_keigo:'standard_polite' },
+              note:'Locals are often relaxed with strangers. A passerby answers in kind, but never as stiffly as keigo.' },
+  formal:   { label:'Business & superiors',
+              combos:['standard_polite','standard_keigo'],
+              partner:'standard_polite',
+              note:'Interviews and calls to your boss need polite or keigo. Casual speech and Kansai-ben are left out.' },
+  coworker: { label:'Coworkers & acquaintances',
+              combos:['standard_polite','standard_keigo','kansai_casual'],
+              partner:'match',
+              note:'Depends on how well you know them. Polite is the safe default, keigo suits seniors, Kansai-ben suits friendly terms.' },
+  friend:   { label:'Close friends',
+              combos:['standard_casual','kansai_casual'],
+              partner:'match',
+              note:'With close friends, polite or keigo would sound cold and distant, so only casual speech is offered.' },
+};
+const COMBO_META = {
+  standard_casual: { label:'Standard', sub:'Casual', ja:'標準語・カジュアル', colorVar:'--moss' },
+  standard_polite: { label:'Standard', sub:'Polite', ja:'標準語・丁寧', colorVar:'--paper-dim' },
+  standard_keigo:  { label:'Standard', sub:'Keigo',  ja:'標準語・敬語', colorVar:'--gold' },
+  kansai_casual:   { label:'Kansai-ben', sub:'Casual', ja:'関西弁・カジュアル', colorVar:'--vermillion' },
+  kansai_polite:   { label:'Kansai-ben', sub:'Polite', ja:'関西弁・丁寧', colorVar:'--vermillion' },
+  kansai_keigo:    { label:'Kansai-ben', sub:'Keigo',  ja:'関西弁・敬語', colorVar:'--vermillion' },
+};
+function comboMeta(combo){
+  return COMBO_META[combo] || { label:combo, sub:'', ja:'', colorVar:'--paper-dim' };
+}
+// Combo ids are only ever built/split here, so nothing else depends on the "_" format.
+function comboId(dialect, politeness){ return `${dialect}_${politeness}`; }
+function parseCombo(combo){ const [dialect, politeness] = combo.split('_'); return { dialect, politeness }; }
+
+// Which setting governs a script key like "restaurant" or "phone.sick".
+function settingFor(scriptKey){
+  const [scenarioId, topicId] = scriptKey.split('.');
+  const scenario = getScenario(scenarioId);
+  const topic = (scenario && scenario.topics) ? scenario.topics.find(t => t.id === topicId) : null;
+  const id = (topic && topic.setting) || (scenario && scenario.setting);
+  if(!SETTINGS[id]) console.error(`No valid setting for "${scriptKey}" (got "${id}"); falling back to "service".`);
+  return SETTINGS[id] || SETTINGS.service;
+}
+// How the other person speaks, given the combo the learner picked.
+function partnerComboFor(setting, userCombo){
+  const p = setting.partner;
+  if(p === 'match') return userCombo;
+  if(typeof p === 'string') return p;
+  return p[userCombo] || userCombo;
+}
+
+/* =========================================================
+   DATA — SCRIPTS
+   Every user turn must provide exactly the combos its setting allows,
+   and every partner turn with `variants` must cover the combos the
+   partner will use (see validateScripts). Turns without `variants`
+   are fixed lines spoken the same way whatever the learner picks.
+   ========================================================= */
+
+// Small helpers so scripts stay compact. They build exactly the same turn shapes
+// as the hand-written scripts above them.
+const L = (jp, romaji, en) => ({ jp, romaji, en });                  // one line of speech
+const you = variants => ({ speaker:'user', variants });               // your turn: one line per combo
+const them = (jp, romaji, en) => ({ speaker:'ai', jp, romaji, en }); // partner turn, same for every combo
+const themV = variants => ({ speaker:'ai', variants });               // partner turn that changes with the partner's combo
+
+const SCRIPTS = {
+  'restaurant.ordering': [
+    { speaker:'ai', variants:{
+      standard_keigo:{jp:'ご注文はお決まりでしょうか。',romaji:'Gochuumon wa okimari deshou ka.',en:'Are you ready to order?'} }},
+    { speaker:'user', variants:{
+      standard_polite:{jp:'おすすめは何ですか。',romaji:'Osusume wa nan desu ka.',en:'What do you recommend?'},
+      standard_keigo:{jp:'おすすめは何でしょうか。',romaji:'Osusume wa nan deshou ka.',en:'What would you recommend?'} }},
+    { speaker:'ai', jp:'本日は鮭の塩焼きがおすすめです。',romaji:'Honjitsu wa sake no shioyaki ga osusume desu.',en:"Today I'd recommend the grilled salted salmon." },
+    { speaker:'user', variants:{
+      standard_polite:{jp:'これをください。',romaji:'Kore o kudasai.',en:"I'll have this, please."},
+      standard_keigo:{jp:'こちらをお願いいたします。',romaji:'Kochira o onegai itashimasu.',en:'I would like this one, please.'} }},
+    { speaker:'ai', jp:'かしこまりました。少々お待ちください。',romaji:'Kashikomarimashita. Shoushou omachi kudasai.',en:'Certainly. Please wait a moment.' },
+    { speaker:'user', variants:{
+      standard_polite:{jp:'お会計をお願いします。',romaji:'Okaikei o onegai shimasu.',en:'Check, please.'},
+      standard_keigo:{jp:'お会計をお願いできますでしょうか。',romaji:'Okaikei o onegai dekimasu deshou ka.',en:'Could I please have the check?'} }},
+    { speaker:'ai', jp:'ありがとうございました。またお越しくださいませ。',romaji:'Arigatou gozaimashita. Mata okoshi kudasaimase.',en:'Thank you very much. Please come again.' },
+  ],
+  'directions.to_station': [
+    { speaker:'user', variants:{
+      standard_polite:{jp:'すみません、ちょっと道を聞いてもいいですか。',romaji:'Sumimasen, chotto michi o kiite mo ii desu ka.',en:'Excuse me, can I ask for directions?'},
+      standard_keigo:{jp:'恐れ入りますが、道をお伺いしてもよろしいでしょうか。',romaji:'Osoreirimasu ga, michi o oukagai shite mo yoroshii deshou ka.',en:'Excuse me, might I ask you for directions?'},
+      kansai_casual:{jp:'ちょっとぉ、道教えてくれへん?',romaji:'Chottoo, michi oshiete kurehen?',en:'Hey, can you tell me the way?'} }},
+    { speaker:'ai', jp:'はい、大丈夫ですよ。どちらまで行かれますか。',romaji:'Hai, daijoubu desu yo. Dochira made ikaremasu ka.',en:'Sure, no problem. Where are you headed?' },
+    { speaker:'user', variants:{
+      standard_polite:{jp:'駅はどこですか。',romaji:'Eki wa doko desu ka.',en:'Where is the station?'},
+      standard_keigo:{jp:'駅はどちらでしょうか。',romaji:'Eki wa dochira deshou ka.',en:'Where might the station be?'},
+      kansai_casual:{jp:'駅どこにあるん?',romaji:'Eki doko ni aru n?',en:"Where's the station at?"} }},
+    { speaker:'ai', variants:{
+      standard_polite:{jp:'まっすぐ行って、右に曲がってください。',romaji:'Massugu itte, migi ni magatte kudasai.',en:'Go straight, then turn right.'},
+      kansai_casual:{jp:'まっすぐ行って右曲がったらええで。',romaji:'Massugu itte migi magattara ee de.',en:'Just go straight then turn right.'} }},
+    { speaker:'user', variants:{
+      standard_polite:{jp:'ありがとうございます。',romaji:'Arigatou gozaimasu.',en:'Thank you.'},
+      standard_keigo:{jp:'ご丁寧にありがとうございます。',romaji:'Goteinei ni arigatou gozaimasu.',en:'Thank you so much for your kindness.'},
+      kansai_casual:{jp:'おおきに!',romaji:'Ookini!',en:'Thanks a bunch!'} }},
+    { speaker:'ai', jp:'どういたしまして。気をつけて。',romaji:'Dou itashimashite. Ki o tsukete.',en:"You're welcome. Take care." },
+  ],
+  'interview.basics': [
+    { speaker:'ai', variants:{
+      standard_polite:{jp:'自己紹介をお願いします。',romaji:'Jiko shoukai o onegai shimasu.',en:'Please introduce yourself.'} }},
+    { speaker:'user', variants:{
+      standard_polite:{jp:'田中です。よろしくお願いします。',romaji:'Tanaka desu. Yoroshiku onegaishimasu.',en:"I'm Tanaka. Nice to meet you."},
+      standard_keigo:{jp:'田中と申します。よろしくお願いいたします。',romaji:'Tanaka to moushimasu. Yoroshiku onegai itashimasu.',en:'My name is Tanaka. I humbly ask for your favor.'} }},
+    { speaker:'ai', jp:'ありがとうございます。では、この仕事に興味を持った理由を教えてください。',romaji:'Arigatou gozaimasu. Dewa, kono shigoto ni kyoumi o motta riyuu o oshiete kudasai.',en:"Thank you. Now, please tell me why you're interested in this job." },
+    { speaker:'user', variants:{
+      standard_polite:{jp:'この仕事に興味があります。',romaji:'Kono shigoto ni kyoumi ga arimasu.',en:"I'm interested in this job."},
+      standard_keigo:{jp:'こちらの求人に大変興味を持っております。',romaji:'Kochira no kyuujin ni taihen kyoumi o motte orimasu.',en:'I am very interested in this position.'} }},
+    { speaker:'ai', variants:{
+      standard_polite:{jp:'いつから働けますか。',romaji:'Itsu kara hatarakemasu ka.',en:'When can you start working?'} }},
+    { speaker:'user', variants:{
+      standard_polite:{jp:'来週から働けます。',romaji:'Raishuu kara hatarakemasu.',en:'I can start from next week.'},
+      standard_keigo:{jp:'来週より勤務可能でございます。',romaji:'Raishuu yori kinmu kanou de gozaimasu.',en:'I am able to work starting next week.'} }},
+    { speaker:'ai', jp:'わかりました。結果は一週間以内にご連絡します。',romaji:'Wakarimashita. Kekka wa isshuukan inai ni gorenraku shimasu.',en:"Understood. We'll contact you with the results within a week." },
+    { speaker:'user', variants:{
+      standard_polite:{jp:'本日はありがとうございました。',romaji:'Honjitsu wa arigatou gozaimashita.',en:'Thank you for today.'},
+      standard_keigo:{jp:'本日は貴重なお時間をいただき、誠にありがとうございました。',romaji:'Honjitsu wa kichou na ojikan o itadaki, makoto ni arigatou gozaimashita.',en:'Thank you very much for your valuable time today.'} }},
+  ],
+  'shopping.sizes': [
+    { speaker:'ai', variants:{
+      standard_polite:{jp:'何かお探しですか。',romaji:'Nanika osagashi desu ka.',en:'Are you looking for something?'} }},
+    { speaker:'user', variants:{
+      standard_polite:{jp:'もっと大きいサイズはありますか。',romaji:'Motto ookii saizu wa arimasu ka.',en:'Do you have a bigger size?'},
+      standard_keigo:{jp:'もう少し大きめのサイズはございますか。',romaji:'Mou sukoshi ookime no saizu wa gozaimasu ka.',en:'Might you have a slightly larger size?'},
+      kansai_casual:{jp:'もっと大きいサイズある?',romaji:'Motto ookii saizu aru?',en:'Got a bigger size?'} }},
+    { speaker:'ai', jp:'はい、Lサイズがございます。',romaji:'Hai, eru saizu ga gozaimasu.',en:'Yes, we have an L size.' },
+    { speaker:'user', variants:{
+      standard_polite:{jp:'これはいくらですか。',romaji:'Kore wa ikura desu ka.',en:'How much is this?'},
+      standard_keigo:{jp:'こちらはおいくらでしょうか。',romaji:'Kochira wa oikura deshou ka.',en:'How much would this be?'},
+      kansai_casual:{jp:'これなんぼ?',romaji:'Kore nanbo?',en:'How much is this?'} }},
+    { speaker:'ai', jp:'3000円でございます。',romaji:'Sanzen en de gozaimasu.',en:"That's 3000 yen." },
+    { speaker:'user', variants:{
+      standard_polite:{jp:'これを買います。',romaji:'Kore o kaimasu.',en:"I'll buy this."},
+      standard_keigo:{jp:'こちらをいただきます。',romaji:'Kochira o itadakimasu.',en:"I'll take this one."},
+      kansai_casual:{jp:'これ買うわ。',romaji:'Kore kau wa.',en:"I'll get this."} }},
+    { speaker:'ai', jp:'ありがとうございます。',romaji:'Arigatou gozaimasu.',en:'Thank you.' },
+  ],
+  'hotel.checkin': [
+    { speaker:'user', variants:{
+      standard_polite:{jp:'予約をしています。',romaji:'Yoyaku o shite imasu.',en:'I have a reservation.'},
+      standard_keigo:{jp:'予約をさせていただいております。',romaji:'Yoyaku o sasete itadaite orimasu.',en:'I have made a reservation.'} }},
+    { speaker:'ai', variants:{
+      standard_keigo:{jp:'お名前を頂戴できますでしょうか。',romaji:'Onamae o choudai dekimasu deshou ka.',en:'Might I have your name?'} }},
+    { speaker:'user', variants:{
+      standard_polite:{jp:'田中です。',romaji:'Tanaka desu.',en:"I'm Tanaka."},
+      standard_keigo:{jp:'田中と申します。',romaji:'Tanaka to moushimasu.',en:'My name is Tanaka.'} }},
+    { speaker:'ai', jp:'ありがとうございます。ご予約を確認いたしました。',romaji:'Arigatou gozaimasu. Goyoyaku o kakunin itashimashita.',en:"Thank you. I've confirmed your reservation." },
+    { speaker:'user', variants:{
+      standard_polite:{jp:'朝食は何時からですか。',romaji:'Choushoku wa nanji kara desu ka.',en:'What time does breakfast start?'},
+      standard_keigo:{jp:'朝食は何時からでございますか。',romaji:'Choushoku wa nanji kara de gozaimasu ka.',en:'From what time is breakfast served?'} }},
+    { speaker:'ai', jp:'朝食は7時からでございます。',romaji:'Choushoku wa shichiji kara de gozaimasu.',en:'Breakfast is served from 7 o\u2019clock.' },
+    { speaker:'user', variants:{
+      standard_polite:{jp:'部屋の鍵をください。',romaji:'Heya no kagi o kudasai.',en:'Could I have my room key?'},
+      standard_keigo:{jp:'お部屋の鍵をいただけますでしょうか。',romaji:'Oheya no kagi o itadakemasu deshou ka.',en:'Could I please have my room key?'} }},
+    { speaker:'ai', jp:'こちらが鍵でございます。ごゆっくりどうぞ。',romaji:'Kochira ga kagi de gozaimasu. Goyukkuri douzo.',en:'Here is your key. Please enjoy your stay.' },
+  ],
+  'friend.plans': [
+    { speaker:'ai', variants:{
+      standard_casual:{jp:'週末は何か予定ある?',romaji:'Shuumatsu wa nanika yotei aru?',en:'Got any plans this weekend?'},
+      kansai_casual:{jp:'週末なんかすんの?',romaji:'Shuumatsu nanka sun no?',en:'Doing anything this weekend?'} }},
+    { speaker:'user', variants:{
+      standard_casual:{jp:'映画でも見に行かない?',romaji:'Eiga demo mi ni ikanai?',en:'Want to go see a movie or something?'},
+      kansai_casual:{jp:'映画観に行かへん?',romaji:'Eiga mi ni ikahen?',en:'Wanna go watch a movie?'} }},
+    { speaker:'ai', variants:{
+      standard_casual:{jp:'いいね、行こう!',romaji:'Ii ne, ikou!',en:"Sounds good, let's go!"},
+      kansai_casual:{jp:'ええな、行こう行こう!',romaji:'Ee na, ikou ikou!',en:"Nice, let's go let's go!"} }},
+    { speaker:'user', variants:{
+      standard_casual:{jp:'じゃあ3時に駅で会おう。',romaji:'Jaa sanji ni eki de aou.',en:"Okay, let's meet at the station at 3."},
+      kansai_casual:{jp:'ほな3時に駅な。',romaji:'Hona sanji ni eki na.',en:'Alright, station at 3 then.'} }},
+    { speaker:'ai', jp:'楽しみにしてるね!',romaji:'Tanoshimi ni shiteru ne!',en:'Looking forward to it!' },
+  ],
+  'doctor.fever': [
+    { speaker:'ai', variants:{
+      standard_keigo:{jp:'本日はどのような症状でいらっしゃいますか。',romaji:'Honjitsu wa donoyou na shoujou de irasshaimasu ka.',en:'What symptoms are you experiencing today?'} }},
+    { speaker:'user', variants:{
+      standard_polite:{jp:'熱があります。',romaji:'Netsu ga arimasu.',en:'I have a fever.'},
+      standard_keigo:{jp:'熱がございまして。',romaji:'Netsu ga gozaimashite.',en:'I happen to have a fever.'} }},
+    { speaker:'ai', variants:{
+      standard_keigo:{jp:'いつ頃から発熱されていますでしょうか。',romaji:'Itsugoro kara hatsunetsu sarete imasu deshou ka.',en:'Since around when has the fever started?'} }},
+    { speaker:'user', variants:{
+      standard_polite:{jp:'2日前からです。',romaji:'Futsuka mae kara desu.',en:'Since two days ago.'},
+      standard_keigo:{jp:'2日前からでございます。',romaji:'Futsuka mae kara de gozaimasu.',en:'It has been since two days ago.'} }},
+    { speaker:'ai', variants:{
+      standard_keigo:{jp:'どうぞごゆっくりお休みください。',romaji:'Douzo goyukkuri oyasumi kudasai.',en:'Please do take a good rest.'} }},
+  ],
+  'station.tickets': [
+    { speaker:'user', variants:{
+      standard_polite:{jp:'何番線ですか。',romaji:'Nanbansen desu ka.',en:'Which platform is it?'},
+      standard_keigo:{jp:'何番線でございますでしょうか。',romaji:'Nanbansen de gozaimasu deshou ka.',en:'Which platform might it be?'} }},
+    { speaker:'ai', jp:'3番線でございます。',romaji:'Sanbansen de gozaimasu.',en:"That's platform 3." },
+    { speaker:'user', variants:{
+      standard_polite:{jp:'切符はいくらですか。',romaji:'Kippu wa ikura desu ka.',en:'How much is the ticket?'},
+      standard_keigo:{jp:'切符はおいくらでございますか。',romaji:'Kippu wa oikura de gozaimasu ka.',en:'How much would the ticket be?'} }},
+    { speaker:'ai', jp:'270円です。あ、少し電車が遅れております。',romaji:'Nihyaku nanajuu en desu. A, sukoshi densha ga okurete orimasu.',en:"That's 270 yen. Oh, the train is running a bit late." },
+    { speaker:'user', variants:{
+      standard_polite:{jp:'次の電車は何時ですか。',romaji:'Tsugi no densha wa nanji desu ka.',en:'What time is the next train?'},
+      standard_keigo:{jp:'次の電車は何時でございますか。',romaji:'Tsugi no densha wa nanji de gozaimasu ka.',en:'What time might the next train be?'} }},
+    { speaker:'ai', jp:'5分後に参ります。',romaji:'Gofun go ni mairimasu.',en:'It will arrive in 5 minutes.' },
+  ],
+
+  'phone.reservation': [
+    { speaker:'ai', variants:{
+      standard_keigo:{jp:'お電話ありがとうございます。レストラン花の田でございます。',romaji:'Odenwa arigatou gozaimasu. Resutoran Hana no Da de gozaimasu.',en:'Thank you for calling. This is Hana no Da restaurant.'} }},
+    { speaker:'user', variants:{
+      standard_polite:{jp:'今晩7時に予約したいんですが。',romaji:'Konban shichiji ni yoyaku shitain desu ga.',en:"I'd like to make a reservation for 7pm tonight."},
+      standard_keigo:{jp:'本日の19時に予約をお願いしたいのですが。',romaji:'Honjitsu no juukyuuji ni yoyaku o onegai shitai no desu ga.',en:'I would like to request a reservation for 7pm today.'} }},
+    { speaker:'ai', jp:'かしこまりました。何名様でしょうか。',romaji:'Kashikomarimashita. Nanmeisama deshou ka.',en:'Certainly. How many people will it be?' },
+    { speaker:'user', variants:{
+      standard_polite:{jp:'2人です。',romaji:'Futari desu.',en:'Two people.'},
+      standard_keigo:{jp:'2名でお願いいたします。',romaji:'Ni-mei de onegai itashimasu.',en:'Two, please.'} }},
+    { speaker:'ai', jp:'承知いたしました。お名前を頂戴できますか。',romaji:'Shouchi itashimashita. Onamae o choudai dekimasu ka.',en:'Understood. Could I get your name?' },
+    { speaker:'user', variants:{
+      standard_polite:{jp:'田中です。',romaji:'Tanaka desu.',en:"I'm Tanaka."},
+      standard_keigo:{jp:'田中と申します。',romaji:'Tanaka to moushimasu.',en:'My name is Tanaka.'} }},
+    { speaker:'ai', jp:'ありがとうございます。7時にお待ちしております。',romaji:'Arigatou gozaimasu. Shichiji ni omachi shite orimasu.',en:"Thank you. We'll be expecting you at 7." },
+  ],
+  'phone.sick': [
+    { speaker:'ai', variants:{
+      standard_polite:{jp:'はい、営業部の鈴木です。',romaji:'Hai, eigyoubu no Suzuki desu.',en:'Hello, this is Suzuki from Sales.'} }},
+    { speaker:'user', variants:{
+      standard_polite:{jp:'すみません、今日は体調が悪くて休ませていただきたいのですが。',romaji:'Sumimasen, kyou wa taichou ga warukute yasumasete itadakitai no desu ga.',en:"Sorry, I'm not feeling well today and would like to take the day off."},
+      standard_keigo:{jp:'申し訳ございません、本日は体調不良のため、お休みをいただきたく存じます。',romaji:'Moushiwake gozaimasen, honjitsu wa taichou furyou no tame, oyasumi o itadakitaku zonjimasu.',en:'I sincerely apologize, but due to feeling unwell today, I would like to request the day off.'} }},
+    { speaker:'ai', jp:'わかりました。お大事にしてください。',romaji:'Wakarimashita. Odaiji ni shite kudasai.',en:'Understood. Please take care of yourself.' },
+    { speaker:'user', variants:{
+      standard_polite:{jp:'ありがとうございます。また明日の朝連絡します。',romaji:'Arigatou gozaimasu. Mata ashita no asa renraku shimasu.',en:"Thank you. I'll contact you again tomorrow morning."},
+      standard_keigo:{jp:'ありがとうございます。明日の朝、改めてご連絡いたします。',romaji:'Arigatou gozaimasu. Ashita no asa, aratamete gorenraku itashimasu.',en:'Thank you. I will contact you again tomorrow morning.'} }},
+    { speaker:'ai', jp:'はい、お願いします。お大事に。',romaji:'Hai, onegaishimasu. Odaiji ni.',en:'Alright, please do. Take care.' },
+  ],
+  'phone.delivery': [
+    { speaker:'ai', variants:{
+      standard_keigo:{jp:'お電話ありがとうございます。さくら宅配便でございます。',romaji:'Odenwa arigatou gozaimasu. Sakura Takuhaibin de gozaimasu.',en:'Thank you for calling. This is Sakura Delivery.'} }},
+    { speaker:'user', variants:{
+      standard_polite:{jp:'すみません、荷物がまだ届かないんですが。',romaji:'Sumimasen, nimotsu ga mada todokanain desu ga.',en:"Excuse me, my package hasn't arrived yet."},
+      standard_keigo:{jp:'恐れ入りますが、お荷物がまだ届いておりませんで。',romaji:'Osoreirimasu ga, onimotsu ga mada todoite orimasen de.',en:"I'm sorry to trouble you, but my package hasn't arrived yet."} }},
+    { speaker:'ai', jp:'かしこまりました。伝票番号を教えていただけますか。',romaji:'Kashikomarimashita. Denpyou bangou o oshiete itadakemasu ka.',en:'Certainly. Could you tell me the tracking number?' },
+    { speaker:'user', variants:{
+      standard_polite:{jp:'1234です。',romaji:'Ichi ni san yon desu.',en:"It's 1234."},
+      standard_keigo:{jp:'1234でございます。',romaji:'Ichi ni san yon de gozaimasu.',en:"It's 1234."} }},
+    { speaker:'ai', jp:'申し訳ございません。明日には届く予定です。',romaji:'Moushiwake gozaimasen. Ashita ni wa todoku yotei desu.',en:"I'm very sorry. It's scheduled to arrive tomorrow." },
+    { speaker:'user', variants:{
+      standard_polite:{jp:'わかりました。よろしくお願いします。',romaji:'Wakarimashita. Yoroshiku onegaishimasu.',en:'Understood. Thank you.'},
+      standard_keigo:{jp:'承知いたしました。よろしくお願いいたします。',romaji:'Shouchi itashimashita. Yoroshiku onegai itashimasu.',en:'Understood. Thank you very much.'} }},
+    { speaker:'ai', jp:'ご迷惑をおかけして申し訳ございませんでした。',romaji:'Gomeiwaku o okakeshite moushiwake gozaimasen deshita.',en:"I'm very sorry for the inconvenience." },
+  ],
+  'phone.wrong_bill': [
+    { speaker:'ai', variants:{
+      standard_keigo:{jp:'お電話ありがとうございます。ABCガス会社でございます。',romaji:'Odenwa arigatou gozaimasu. ABC Gasu Gaisha de gozaimasu.',en:'Thank you for calling. This is ABC Gas Company.'} }},
+    { speaker:'user', variants:{
+      standard_polite:{jp:'すみません、今月の請求額がおかしいと思うんですが。',romaji:'Sumimasen, kongetsu no seikyuugaku ga okashii to omoun desu ga.',en:"Excuse me, I think this month's bill amount is wrong."},
+      standard_keigo:{jp:'恐れ入りますが、今月のご請求額に誤りがあるように思われまして。',romaji:'Osoreirimasu ga, kongetsu no gosekyuugaku ni ayamari ga aru you ni omowaremashite.',en:"I'm sorry to trouble you, but I believe there may be an error in this month's billed amount."} }},
+    { speaker:'ai', jp:'かしこまりました。お客様番号を教えていただけますか。',romaji:'Kashikomarimashita. Okyakusama bangou o oshiete itadakemasu ka.',en:'Certainly. Could I get your customer number?' },
+    { speaker:'user', variants:{
+      standard_polite:{jp:'5678です。',romaji:'Go roku nana hachi desu.',en:"It's 5678."},
+      standard_keigo:{jp:'5678でございます。',romaji:'Go roku nana hachi de gozaimasu.',en:"It's 5678."} }},
+    { speaker:'ai', jp:'確認いたしました。修正してすぐに再発行いたします。',romaji:'Kakunin itashimashita. Shuusei shite sugu ni saihakkou itashimasu.',en:"I've confirmed that. I'll correct it and reissue it right away." },
+    { speaker:'user', variants:{
+      standard_polite:{jp:'ありがとうございます、助かります。',romaji:'Arigatou gozaimasu, tasukarimasu.',en:'Thank you, that helps.'},
+      standard_keigo:{jp:'ありがとうございます、大変助かります。',romaji:'Arigatou gozaimasu, taihen tasukarimasu.',en:'Thank you very much, that\u2019s a great help.'} }},
+    { speaker:'ai', jp:'こちらこそ、ご指摘ありがとうございました。',romaji:'Kochira koso, goshiteki arigatou gozaimashita.',en:'Thank you for letting us know.' },
+  ],
+
+  'workplace.deadline': [
+    { speaker:'ai', jp:'田中さん、例の資料、できましたか？',romaji:'Tanaka-san, rei no shiryou, dekimashita ka?',en:'Tanaka, is that document ready?' },
+    { speaker:'user', variants:{
+      standard_polite:{jp:'すみません、もう少し時間がかかります。',romaji:'Sumimasen, mou sukoshi jikan ga kakarimasu.',en:"Sorry, it'll take a bit more time."},
+      standard_keigo:{jp:'申し訳ございません、今しばらくお時間をいただけますでしょうか。',romaji:'Moushiwake gozaimasen, ima shibaraku ojikan o itadakemasu deshou ka.',en:"I'm very sorry, could I have a bit more time?"},
+      kansai_casual:{jp:'すまん、もうちょっとかかりそうやねん。',romaji:'Suman, mou chotto kakarisou ya nen.',en:'Sorry, gonna take a bit longer.'} }},
+    { speaker:'ai', jp:'わかりました。いつまでにできそうですか。',romaji:'Wakarimashita. Itsu made ni dekisou desu ka.',en:'Understood. By when do you think it will be done?' },
+    { speaker:'user', variants:{
+      standard_polite:{jp:'明日の朝までにはできます。',romaji:'Ashita no asa made ni wa dekimasu.',en:"It'll be done by tomorrow morning."},
+      standard_keigo:{jp:'明日の朝までには必ず仕上げます。',romaji:'Ashita no asa made ni wa kanarazu shiagemasu.',en:'I will definitely finish it by tomorrow morning.'},
+      kansai_casual:{jp:'明日の朝までにはやっとくわ。',romaji:'Ashita no asa made ni wa yattoku wa.',en:"I'll get it done by tomorrow morning."} }},
+    { speaker:'ai', jp:'ところで、さっき頼んだファイル、探してもらえましたか？',romaji:'Tokoro de, sakki tanonda fairu, sagashite moraemashita ka?',en:'By the way, could you find that file I asked about earlier?' },
+    { speaker:'user', variants:{
+      standard_polite:{jp:'ちょっと待ってください、今探します。',romaji:'Chotto matte kudasai, ima sagashimasu.',en:"Hold on, I'll look for it now."},
+      standard_keigo:{jp:'少々お待ちいただけますでしょうか、ただいま確認いたします。',romaji:'Shoushou omachi itadakemasu deshou ka, tadaima kakunin itashimasu.',en:'Would you mind waiting a moment? I\u2019ll check right away.'},
+      kansai_casual:{jp:'ちょっと待ってな、今探すわ。',romaji:'Chotto matte na, ima sagasu wa.',en:"Hold on, I'll look for it now."} }},
+    { speaker:'ai', jp:'お願いします。',romaji:'Onegaishimasu.',en:'Please do.' },
+    { speaker:'user', variants:{
+      standard_polite:{jp:'すみません、ファイルの場所を間違えました。',romaji:'Sumimasen, fairu no basho o machigaemashita.',en:'Sorry, I put the file in the wrong place.'},
+      standard_keigo:{jp:'申し訳ございません、ファイルの保管場所を誤っておりました。',romaji:'Moushiwake gozaimasen, fairu no hokan basho o ayamatte orimashita.',en:'I sincerely apologize, I had stored the file in the wrong location.'},
+      kansai_casual:{jp:'ごめん、ファイル置き場所間違えてたわ。',romaji:'Gomen, fairu okibasho machigaeteta wa.',en:'Sorry, I put the file in the wrong spot.'} }},
+    { speaker:'ai', jp:'大丈夫ですよ、見つかってよかったです。',romaji:'Daijoubu desu yo, mitsukatte yokatta desu.',en:'No worries, glad it turned up.' },
+  ],
+
+  'smalltalk.weather': [
+    { speaker:'ai', variants:{
+      standard_polite:{jp:'今日、暑いですね。',romaji:'Kyou, atsui desu ne.',en:"It's hot today, isn't it."},
+      standard_keigo:{jp:'本日はお暑うございますね。',romaji:'Honjitsu wa oatsuu gozaimasu ne.',en:"It's quite hot today, isn't it."},
+      kansai_casual:{jp:'今日暑いなあ。',romaji:'Kyou atsui naa.',en:"Man, it's hot today."} }},
+    { speaker:'user', variants:{
+      standard_polite:{jp:'そうですね、本当に暑いです。',romaji:'Sou desu ne, hontou ni atsui desu.',en:"Yeah, it's really hot."},
+      standard_keigo:{jp:'おっしゃる通りでございますね。',romaji:'Ossharu toori de gozaimasu ne.',en:"Indeed, you're quite right."},
+      kansai_casual:{jp:'ほんまやな、めっちゃ暑いわ。',romaji:'Honma ya na, meccha atsui wa.',en:"Seriously, it's crazy hot."} }},
+    { speaker:'ai', variants:{
+      standard_polite:{jp:'週末は何をされましたか。',romaji:'Shuumatsu wa nani o saremashita ka.',en:'What did you do this weekend?'},
+      standard_keigo:{jp:'週末はどのようにお過ごしになりましたか。',romaji:'Shuumatsu wa donoyou ni osugoshi ni narimashita ka.',en:'How did you spend your weekend?'},
+      kansai_casual:{jp:'週末なんしてたん？',romaji:'Shuumatsu nan shiteta n?',en:"What'd you get up to this weekend?"} }},
+    { speaker:'user', variants:{
+      standard_polite:{jp:'家でゆっくりしていました。',romaji:'Ie de yukkuri shite imashita.',en:'I relaxed at home.'},
+      standard_keigo:{jp:'自宅で静かに過ごしておりました。',romaji:'Jitaku de shizuka ni sugoshite orimashita.',en:'I spent it quietly at home.'},
+      kansai_casual:{jp:'家でゴロゴロしててん。',romaji:'Ie de gorogoro shitete n.',en:'I was just lazing around at home.'} }},
+    { speaker:'ai', jp:'それはよかったですね。',romaji:'Sore wa yokatta desu ne.',en:'That sounds nice.' },
+  ],
+  'smalltalk.hobbies': [
+    { speaker:'ai', variants:{
+      standard_polite:{jp:'休みの日は何をしていますか。',romaji:'Yasumi no hi wa nani o shite imasu ka.',en:'What do you do on your days off?'},
+      standard_keigo:{jp:'お休みの日はどのようにお過ごしですか。',romaji:'Oyasumi no hi wa donoyou ni osugoshi desu ka.',en:'How do you spend your days off?'},
+      kansai_casual:{jp:'休みの日何してんの？',romaji:'Yasumi no hi nani shiten no?',en:'What do you do on your days off?'} }},
+    { speaker:'user', variants:{
+      standard_polite:{jp:'映画を見るのが好きです。',romaji:'Eiga o miru no ga suki desu.',en:'I like watching movies.'},
+      standard_keigo:{jp:'映画鑑賞を趣味にしております。',romaji:'Eiga kanshou o shumi ni shite orimasu.',en:'I have movie watching as my hobby.'},
+      kansai_casual:{jp:'映画観るのが好きやねん。',romaji:'Eiga miru no ga suki ya nen.',en:'I like watching movies.'} }},
+    { speaker:'ai', jp:'どんなジャンルが好きですか。',romaji:'Donna janru ga suki desu ka.',en:'What genre do you like?' },
+    { speaker:'user', variants:{
+      standard_polite:{jp:'アクション映画が好きです。',romaji:'Akushon eiga ga suki desu.',en:'I like action movies.'},
+      standard_keigo:{jp:'アクション映画を好んで見ております。',romaji:'Akushon eiga o kononde mite orimasu.',en:'I tend to enjoy watching action movies.'},
+      kansai_casual:{jp:'アクション映画好きやねん。',romaji:'Akushon eiga suki ya nen.',en:'I like action movies.'} }},
+    { speaker:'ai', jp:'いいですね、今度おすすめ教えてください。',romaji:'Ii desu ne, kondo osusume oshiete kudasai.',en:'Nice, tell me your recommendations sometime.' },
+  ],
+  'smalltalk.work': [
+    { speaker:'ai', variants:{
+      standard_polite:{jp:'お仕事は何をされているんですか。',romaji:'Oshigoto wa nani o sarete iru n desu ka.',en:'What do you do for work?'},
+      standard_keigo:{jp:'失礼ですが、どのようなお仕事をなさっているのですか。',romaji:'Shitsurei desu ga, donoyou na oshigoto o nasatte iru no desu ka.',en:'If I may ask, what kind of work do you do?'},
+      kansai_casual:{jp:'仕事何してるん？',romaji:'Shigoto nani shiteru n?',en:'What do you do for work?'} }},
+    { speaker:'user', variants:{
+      standard_polite:{jp:'会社で営業をしています。',romaji:'Kaisha de eigyou o shite imasu.',en:'I work in sales at a company.'},
+      standard_keigo:{jp:'会社で営業を担当しております。',romaji:'Kaisha de eigyou o tantou shite orimasu.',en:"I'm in charge of sales at a company."},
+      kansai_casual:{jp:'会社で営業しててん。',romaji:'Kaisha de eigyou shitete n.',en:'I do sales at a company.'} }},
+    { speaker:'ai', jp:'忙しいですか。',romaji:'Isogashii desu ka.',en:'Is it busy?' },
+    { speaker:'user', variants:{
+      standard_polite:{jp:'はい、最近はとても忙しいです。',romaji:'Hai, saikin wa totemo isogashii desu.',en:"Yes, it's been very busy lately."},
+      standard_keigo:{jp:'はい、このところ大変忙しくしております。',romaji:'Hai, kono tokoro taihen isogashiku shite orimasu.',en:"Yes, I've been quite busy lately."},
+      kansai_casual:{jp:'うん、最近めっちゃ忙しいねん。',romaji:'Un, saikin meccha isogashii nen.',en:"Yeah, been super busy lately."} }},
+    { speaker:'ai', jp:'無理しないでくださいね。',romaji:'Muri shinaide kudasai ne.',en:"Please don't push yourself too hard." },
+  ],
+  'smalltalk.food': [
+    { speaker:'ai', variants:{
+      standard_polite:{jp:'最近何かおいしいもの食べましたか。',romaji:'Saikin nanika oishii mono tabemashita ka.',en:'Have you eaten anything good lately?'},
+      standard_keigo:{jp:'最近何か美味しいものを召し上がりましたか。',romaji:'Saikin nanika oishii mono o meshiagarimashita ka.',en:'Have you had anything delicious recently?'},
+      kansai_casual:{jp:'最近なんかうまいもん食うたか？',romaji:'Saikin nanka umai mon kuuta ka?',en:'Eaten anything good recently?'} }},
+    { speaker:'user', variants:{
+      standard_polite:{jp:'はい、新しいラーメン屋に行きました。',romaji:'Hai, atarashii raamen-ya ni ikimashita.',en:'Yes, I went to a new ramen shop.'},
+      standard_keigo:{jp:'はい、新しいラーメン店に伺いました。',romaji:'Hai, atarashii raamen-ten ni ukagaimashita.',en:'Yes, I visited a new ramen restaurant.'},
+      kansai_casual:{jp:'おう、新しいラーメン屋行ってん。',romaji:'Ou, atarashii raamen-ya itten.',en:'Yeah, I went to a new ramen place.'} }},
+    { speaker:'ai', jp:'どうでしたか。',romaji:'Dou deshita ka.',en:'How was it?' },
+    { speaker:'user', variants:{
+      standard_polite:{jp:'とてもおいしかったです。',romaji:'Totemo oishikatta desu.',en:'It was really delicious.'},
+      standard_keigo:{jp:'大変美味しゅうございました。',romaji:'Taihen oishuu gozaimashita.',en:'It was very delicious.'},
+      kansai_casual:{jp:'めっちゃうまかったで。',romaji:'Meccha umakatta de.',en:'It was seriously good.'} }},
+    { speaker:'ai', jp:'いいですね、今度私も行ってみます。',romaji:'Ii desu ne, kondo watashi mo itte mimasu.',en:"Nice, I'll try going too sometime." },
+  ],
+
+  'travel.missed_train': [
+    { speaker:'user', variants:{
+      standard_polite:{jp:'すみません、電車に乗り遅れてしまいました。',romaji:'Sumimasen, densha ni noriokurete shimaimashita.',en:'Excuse me, I missed my train.'},
+      standard_keigo:{jp:'恐れ入りますが、電車に乗り遅れてしまいまして。',romaji:'Osoreirimasu ga, densha ni noriokurete shimaimashite.',en:"I'm sorry to bother you, but I've missed my train."} }},
+    { speaker:'ai', jp:'かしこまりました。お切符を見せていただけますか。',romaji:'Kashikomarimashita. Okippu o misete itadakemasu ka.',en:'Certainly. Could I see your ticket?' },
+    { speaker:'user', variants:{
+      standard_polite:{jp:'次の電車はいつ来ますか。',romaji:'Tsugi no densha wa itsu kimasu ka.',en:'When does the next train come?'},
+      standard_keigo:{jp:'次の電車はいつ頃でございますでしょうか。',romaji:'Tsugi no densha wa itsugoro de gozaimasu deshou ka.',en:'Around when might the next train be?'} }},
+    { speaker:'ai', jp:'30分後に次の電車がございます。',romaji:'Sanjuppun go ni tsugi no densha ga gozaimasu.',en:'The next train is in 30 minutes.' },
+    { speaker:'user', variants:{
+      standard_polite:{jp:'このチケットはまだ使えますか。',romaji:'Kono chiketto wa mada tsukaemasu ka.',en:'Can I still use this ticket?'},
+      standard_keigo:{jp:'こちらの切符はまだご利用可能でしょうか。',romaji:'Kochira no kippu wa mada goriyou kanou deshou ka.',en:'Would this ticket still be valid for use?'} }},
+    { speaker:'ai', jp:'はい、そのままお使いいただけます。',romaji:'Hai, sonomama otsukai itadakemasu.',en:'Yes, you can use it as is.' },
+  ],
+  'travel.lost_item': [
+    { speaker:'user', variants:{
+      standard_polite:{jp:'すみません、電車に忘れ物をしてしまいました。',romaji:'Sumimasen, densha ni wasuremono o shite shimaimashita.',en:'Excuse me, I left something on the train.'},
+      standard_keigo:{jp:'恐れ入りますが、電車に忘れ物をしてしまいまして。',romaji:'Osoreirimasu ga, densha ni wasuremono o shite shimaimashite.',en:"I'm sorry to trouble you, but I left something on the train."} }},
+    { speaker:'ai', jp:'かしこまりました。何をお忘れになりましたか。',romaji:'Kashikomarimashita. Nani o owasure ni narimashita ka.',en:'Certainly. What did you leave behind?' },
+    { speaker:'user', variants:{
+      standard_polite:{jp:'黒いかばんです。',romaji:'Kuroi kaban desu.',en:'A black bag.'},
+      standard_keigo:{jp:'黒いかばんでございます。',romaji:'Kuroi kaban de gozaimasu.',en:"It's a black bag."} }},
+    { speaker:'ai', jp:'何時ごろの電車でしたか。',romaji:'Nanji goro no densha deshita ka.',en:'Around what time was the train?' },
+    { speaker:'user', variants:{
+      standard_polite:{jp:'3時ごろの電車でした。',romaji:'Sanji goro no densha deshita.',en:'It was around 3 o\u2019clock.'},
+      standard_keigo:{jp:'3時ごろの電車でございました。',romaji:'Sanji goro no densha de gozaimashita.',en:'It was around 3 o\u2019clock.'} }},
+    { speaker:'ai', jp:'確認いたしますので、少々お待ちください。',romaji:'Kakunin itashimasu node, shoushou omachi kudasai.',en:"I'll check on that, please wait a moment." },
+  ],
+  'travel.wrong_reservation': [
+    { speaker:'user', variants:{
+      standard_polite:{jp:'すみません、予約した部屋と違うようなんですが。',romaji:'Sumimasen, yoyaku shita heya to chigau you nan desu ga.',en:"Excuse me, this doesn't seem to be the room I reserved."},
+      standard_keigo:{jp:'恐れ入りますが、ご予約いただいた部屋と異なるようでして。',romaji:'Osoreirimasu ga, goyoyaku itadaita heya to kotonaru you deshite.',en:'I\u2019m sorry to trouble you, but this appears to differ from the room reserved.'} }},
+    { speaker:'ai', jp:'申し訳ございません。予約番号を教えていただけますか。',romaji:'Moushiwake gozaimasen. Yoyaku bangou o oshiete itadakemasu ka.',en:'I\u2019m very sorry. Could you tell me your reservation number?' },
+    { speaker:'user', variants:{
+      standard_polite:{jp:'9012です。',romaji:'Kyuu zero ichi ni desu.',en:"It's 9012."},
+      standard_keigo:{jp:'9012でございます。',romaji:'Kyuu zero ichi ni de gozaimasu.',en:"It's 9012."} }},
+    { speaker:'ai', jp:'確認いたしました。すぐに正しいお部屋にご案内いたします。',romaji:'Kakunin itashimashita. Sugu ni tadashii oheya ni goannai itashimasu.',en:"I've confirmed that. I'll show you to the correct room right away." },
+    { speaker:'user', variants:{
+      standard_polite:{jp:'時間はかかりますか。',romaji:'Jikan wa kakarimasu ka.',en:'Will it take long?'},
+      standard_keigo:{jp:'お時間はかかりますでしょうか。',romaji:'Ojikan wa kakarimasu deshou ka.',en:'Would it take much time?'} }},
+    { speaker:'ai', jp:'いいえ、5分ほどでご用意できます。',romaji:'Iie, gofun hodo de goyoui dekimasu.',en:'No, we can have it ready in about 5 minutes.' },
+  ],
+  'travel.cancelled': [
+    { speaker:'ai', jp:'申し訳ございませんが、この便は欠航となりました。',romaji:'Moushiwake gozaimasen ga, kono bin wa kekkou to narimashita.',en:"We're very sorry, but this flight has been cancelled." },
+    { speaker:'user', variants:{
+      standard_polite:{jp:'次の便はいつ乗れますか。',romaji:'Tsugi no bin wa itsu noremasu ka.',en:'When can I take the next flight?'},
+      standard_keigo:{jp:'次の便にはいつ頃搭乗できますでしょうか。',romaji:'Tsugi no bin ni wa itsugoro toujou dekimasu deshou ka.',en:'Around when would I be able to board the next flight?'} }},
+    { speaker:'ai', jp:'明日の朝9時の便でしたらご用意できます。',romaji:'Ashita no asa kuji no bin deshitara goyoui dekimasu.',en:"We can arrange tomorrow morning's 9 o'clock flight." },
+    { speaker:'user', variants:{
+      standard_polite:{jp:'ホテル代は出ますか。',romaji:'Hoteru-dai wa demasu ka.',en:'Will hotel costs be covered?'},
+      standard_keigo:{jp:'宿泊費についてはご対応いただけますでしょうか。',romaji:'Shukuhakuhi ni tsuite wa gotaiou itadakemasu deshou ka.',en:'Would you be able to cover the accommodation costs?'} }},
+    { speaker:'ai', jp:'はい、近くのホテルをご用意いたします。',romaji:'Hai, chikaku no hoteru o goyoui itashimasu.',en:"Yes, we'll arrange a nearby hotel for you." },
+    { speaker:'user', variants:{
+      standard_polite:{jp:'ありがとうございます、助かります。',romaji:'Arigatou gozaimasu, tasukarimasu.',en:'Thank you, that helps.'},
+      standard_keigo:{jp:'ありがとうございます、大変助かります。',romaji:'Arigatou gozaimasu, taihen tasukarimasu.',en:'Thank you very much, that\u2019s a great help.'} }},
+  ],
+
+  'advice.tired': [
+    { speaker:'user', variants:{
+      standard_polite:{jp:'ちょっと相談があるんですが。',romaji:'Chotto soudan ga arun desu ga.',en:"I have something I'd like to ask your advice on."},
+      standard_keigo:{jp:'少々ご相談したいことがございまして。',romaji:'Shoushou gosoudan shitai koto ga gozaimashite.',en:'There is something I would like to consult you about.'},
+      kansai_casual:{jp:'ちょっと相談あんねんけど。',romaji:'Chotto soudan an nen kedo.',en:"I've got something I wanna ask you about."} }},
+    { speaker:'ai', jp:'うん、何かあった？',romaji:'Un, nanika atta?',en:'Sure, what\u2019s up?' },
+    { speaker:'user', variants:{
+      standard_polite:{jp:'最近仕事が忙しくて、ちょっと疲れています。',romaji:'Saikin shigoto ga isogashikute, chotto tsukarete imasu.',en:"Work's been busy lately, and I'm a bit tired."},
+      standard_keigo:{jp:'最近業務が立て込んでおりまして、少々疲れております。',romaji:'Saikin gyoumu ga tatekonde orimashite, shoushou tsukarete orimasu.',en:'Work has been quite demanding recently, and I am somewhat fatigued.'},
+      kansai_casual:{jp:'最近仕事忙しすぎて、めっちゃ疲れてんねん。',romaji:'Saikin shigoto isogashisugite, meccha tsukareten nen.',en:"Work's been way too busy lately, I'm exhausted."} }},
+    { speaker:'ai', jp:'無理はしないでね。たまには休んでください。',romaji:'Muri wa shinaide ne. Tamani wa yasunde kudasai.',en:"Don't push yourself too hard. Rest sometimes." },
+    { speaker:'user', variants:{
+      standard_polite:{jp:'ありがとうございます、少し楽になりました。',romaji:'Arigatou gozaimasu, sukoshi raku ni narimashita.',en:'Thank you, I feel a bit better.'},
+      standard_keigo:{jp:'ありがとうございます、おかげさまで気持ちが軽くなりました。',romaji:'Arigatou gozaimasu, okagesama de kimochi ga karuku narimashita.',en:'Thank you, thanks to you I feel much lighter.'},
+      kansai_casual:{jp:'ありがとうな、ちょっと楽になったわ。',romaji:'Arigatou na, chotto raku ni natta wa.',en:'Thanks, I feel a bit better.'} }},
+  ],
+  'argument.read': [
+    { speaker:'ai', variants:{
+      standard_casual:{jp:'なんで昨日返事しなかったの？',romaji:'Nande kinou henji shinakatta no?',en:"Why didn't you reply yesterday?"},
+      kansai_casual:{jp:'なんで昨日既読無視したん？',romaji:'Nande kinou kidoku mushi shitan?',en:"Why'd you leave me on read yesterday?"} }},
+    { speaker:'user', variants:{
+      standard_casual:{jp:'ごめん、仕事で忙しくて気づかなかったんだ。',romaji:'Gomen, shigoto de isogashikute kizukanakattan da.',en:"Sorry, I was busy with work and didn't notice."},
+      kansai_casual:{jp:'ごめんて、仕事忙しくて気づかんかってん。',romaji:'Gomente, shigoto isogashikute kizukankatten.',en:"Sorry, work was busy and I didn't notice."} }},
+    { speaker:'ai', jp:'本当に？いつもそう言うよね。',romaji:'Hontou ni? Itsumo sou iu yo ne.',en:'Really? You always say that.' },
+    { speaker:'user', variants:{
+      standard_casual:{jp:'本当にごめん。今度ちゃんと埋め合わせするから。',romaji:'Hontou ni gomen. Kondo chanto umeawase suru kara.',en:"I'm really sorry. I'll make it up to you next time."},
+      kansai_casual:{jp:'ほんまごめんて。今度ちゃんと埋め合わせするから。',romaji:'Honma gomente. Kondo chanto umeawase suru kara.',en:"I'm really sorry. I'll make it up to you next time, promise."} }},
+    { speaker:'ai', jp:'わかった、もういいよ。',romaji:'Wakatta, mou ii yo.',en:"Okay, it's fine now." },
+  ],
+  'drinking.order': [
+    { speaker:'ai', variants:{
+      standard_polite:{jp:'とりあえずビールでいいですか？',romaji:'Toriaezu biiru de ii desu ka?',en:'Beer to start, is that okay?'},
+      standard_keigo:{jp:'まずはビールでよろしいでしょうか。',romaji:'Mazu wa biiru de yoroshii deshou ka.',en:'Shall we start with beer?'},
+      kansai_casual:{jp:'とりあえずビールでええ？',romaji:'Toriaezu biiru de ee?',en:'Beer to start, that okay?'} }},
+    { speaker:'user', variants:{
+      standard_polite:{jp:'はい、ビールでお願いします。',romaji:'Hai, biiru de onegaishimasu.',en:'Yes, beer please.'},
+      standard_keigo:{jp:'はい、ビールでお願いいたします。',romaji:'Hai, biiru de onegai itashimasu.',en:'Yes, beer, please.'},
+      kansai_casual:{jp:'おう、ビールでええで。',romaji:'Ou, biiru de ee de.',en:"Yeah, beer's good."} }},
+    { speaker:'ai', jp:'じゃあ、乾杯しよう！',romaji:'Jaa, kanpai shiyou!',en:"Alright, let's toast!" },
+    { speaker:'user', variants:{
+      standard_polite:{jp:'乾杯！お疲れ様でした。',romaji:'Kanpai! Otsukaresama deshita.',en:'Cheers! Great work today.'},
+      standard_keigo:{jp:'乾杯でございます。本日もお疲れ様でございました。',romaji:'Kanpai de gozaimasu. Honjitsu mo otsukaresama de gozaimashita.',en:'Cheers. Thank you all for your hard work today.'},
+      kansai_casual:{jp:'乾杯や！今日もお疲れさん！',romaji:'Kanpai ya! Kyou mo otsukaresan!',en:'Cheers! Great work today!'} }},
+    { speaker:'ai', jp:'何か食べたいものある？',romaji:'Nanika tabetai mono aru?',en:'Is there anything you want to eat?' },
+    { speaker:'user', variants:{
+      standard_polite:{jp:'から揚げが食べたいです。',romaji:'Karaage ga tabetai desu.',en:"I'd like some fried chicken."},
+      standard_keigo:{jp:'から揚げをいただきたく存じます。',romaji:'Karaage o itadakitaku zonjimasu.',en:'I would like to have some fried chicken.'},
+      kansai_casual:{jp:'から揚げ食べたいわ。',romaji:'Karaage tabetai wa.',en:'I want some fried chicken.'} }},
+    { speaker:'ai', jp:'了解、注文しとくね。',romaji:'Ryoukai, chuumon shitoku ne.',en:"Got it, I'll go ahead and order." },
+  ],
+
+  /* ================= NEW TOPICS ================= */
+
+  /* ---- Restaurant (service: polite / keigo) ---- */
+  'restaurant.table': [
+    them('いらっしゃいませ。何名様でしょうか。','Irasshaimase. Nanmeisama deshou ka.',"Welcome. How many in your party?"),
+    you({
+      standard_polite:L('3人です。予約はしていません。','Sannin desu. Yoyaku wa shite imasen.',"Three of us. We don't have a reservation."),
+      standard_keigo:L('3名です。予約はしておりません。','Sanmei desu. Yoyaku wa shite orimasen.',"Three of us. We have no reservation.") }),
+    them('禁煙席と喫煙席がございますが、いかがなさいますか。','Kinen-seki to kitsuen-seki ga gozaimasu ga, ikaga nasaimasu ka.',"We have non-smoking and smoking seats. Which would you prefer?"),
+    you({
+      standard_polite:L('禁煙席をお願いします。','Kinen-seki o onegai shimasu.',"Non-smoking, please."),
+      standard_keigo:L('禁煙席をお願いできますでしょうか。','Kinen-seki o onegai dekimasu deshou ka.',"Could we have non-smoking seats, please?") }),
+    them('かしこまりました。ただいま満席ですので、10分ほどお待ちいただけますか。','Kashikomarimashita. Tadaima manseki desu node, juppun hodo omachi itadakemasu ka.',"Certainly. We're full right now, could you wait about 10 minutes?"),
+    you({
+      standard_polite:L('はい、待ちます。','Hai, machimasu.',"Yes, we'll wait."),
+      standard_keigo:L('はい、お待ちいたします。','Hai, omachi itashimasu.',"Yes, we will wait.") }),
+    them('お待たせいたしました。こちらへどうぞ。','Omatase itashimashita. Kochira e douzo.',"Thank you for waiting. This way, please."),
+  ],
+  'restaurant.allergy': [
+    you({
+      standard_polite:L('すみません、卵アレルギーがあるんですが。','Sumimasen, tamago arerugii ga aru n desu ga.',"Excuse me, I have an egg allergy."),
+      standard_keigo:L('恐れ入りますが、卵アレルギーがありまして。','Osoreirimasu ga, tamago arerugii ga arimashite.',"I'm sorry to trouble you, but I have an egg allergy.") }),
+    them('かしこまりました。卵を使っていないお料理をご案内いたします。','Kashikomarimashita. Tamago o tsukatte inai oryouri o goannai itashimasu.',"Certainly. I'll show you dishes made without egg."),
+    you({
+      standard_polite:L('この料理に卵は入っていますか。','Kono ryouri ni tamago wa haitte imasu ka.',"Is there egg in this dish?"),
+      standard_keigo:L('こちらのお料理に卵は使われていますでしょうか。','Kochira no oryouri ni tamago wa tsukawarete imasu deshou ka.',"Is egg used in this dish?") }),
+    them('いいえ、こちらは使用しておりません。','Iie, kochira wa shiyou shite orimasen.',"No, this one doesn't contain it."),
+    you({
+      standard_polite:L('じゃあ、これにします。','Jaa, kore ni shimasu.',"Then I'll have this one."),
+      standard_keigo:L('それでは、こちらをお願いいたします。','Sore dewa, kochira o onegai itashimasu.',"Then I'll have this one, please.") }),
+    them('アレルギーの件は、厨房にもお伝えいたします。','Arerugii no ken wa, chuubou ni mo otsutae itashimasu.',"I'll let the kitchen know about the allergy too."),
+  ],
+  'restaurant.wrong_dish': [
+    them('お待たせいたしました。焼き魚定食でございます。','Omatase itashimashita. Yakizakana teishoku de gozaimasu.',"Thank you for waiting. Here is your grilled fish set."),
+    you({
+      standard_polite:L('あの、これは頼んでいないと思うんですが。','Ano, kore wa tanonde inai to omou n desu ga.',"Um, I don't think I ordered this."),
+      standard_keigo:L('恐れ入りますが、こちらは注文していないように思うのですが。','Osoreirimasu ga, kochira wa chuumon shite inai you ni omou no desu ga.',"I'm sorry, but I don't believe I ordered this.") }),
+    them('大変失礼いたしました。ご注文を確認いたします。','Taihen shitsurei itashimashita. Gochuumon o kakunin itashimasu.',"I apologize. Let me check your order."),
+    you({
+      standard_polite:L('天ぷら定食を頼みました。','Tenpura teishoku o tanomimashita.',"I ordered the tempura set."),
+      standard_keigo:L('天ぷら定食をお願いしたはずなのですが。','Tenpura teishoku o onegai shita hazu na no desu ga.',"I believe I ordered the tempura set.") }),
+    them('申し訳ございません。すぐにお取り替えいたします。','Moushiwake gozaimasen. Sugu ni otorikae itashimasu.',"We're very sorry. We'll replace it right away."),
+    you({
+      standard_polite:L('少し急いでいるので、早くお願いします。','Sukoshi isoide iru node, hayaku onegai shimasu.',"I'm in a bit of a hurry, so quickly please."),
+      standard_keigo:L('少々急いでおりますので、お早めにお願いできますでしょうか。','Shoushou isoide orimasu node, ohayame ni onegai dekimasu deshou ka.',"I'm a little pressed for time, so could you be quick?") }),
+    them('かしこまりました。お急ぎでご用意いたします。','Kashikomarimashita. Oisogi de goyoui itashimasu.',"Certainly. We'll prepare it right away."),
+  ],
+
+  /* ---- Directions (stranger: polite / keigo / kansai casual; passerby is polite or Kansai) ---- */
+  'directions.conbini': [
+    you({
+      standard_polite:L('すみません、この近くにコンビニはありますか。','Sumimasen, kono chikaku ni konbini wa arimasu ka.',"Excuse me, is there a convenience store nearby?"),
+      standard_keigo:L('恐れ入ります、この近くにコンビニはございますでしょうか。','Osoreirimasu, kono chikaku ni konbini wa gozaimasu deshou ka.',"Excuse me, might there be a convenience store nearby?"),
+      kansai_casual:L('すんません、この辺コンビニある？','Sunmasen, kono hen konbini aru?',"Sorry, is there a convenience store around here?") }),
+    themV({
+      standard_polite:L('ええ、その角を左に曲がるとありますよ。','Ee, sono kado o hidari ni magaru to arimasu yo.',"Yes, turn left at that corner and you'll find one."),
+      kansai_casual:L('あるで。あの角曲がったらすぐや。','Aru de. Ano kado magattara sugu ya.',"Yeah, there is. Right after you turn at that corner.") }),
+    you({
+      standard_polite:L('ここから歩いてどのくらいですか。','Koko kara aruite dono kurai desu ka.',"About how long on foot from here?"),
+      standard_keigo:L('ここから歩いてどのくらいでしょうか。','Koko kara aruite dono kurai deshou ka.',"About how long would it take on foot from here?"),
+      kansai_casual:L('ここから歩いてどれくらいかかる？','Koko kara aruite dore kurai kakaru?',"How long does it take to walk from here?") }),
+    them('歩いて2分くらいですよ。','Aruite nifun kurai desu yo.',"About two minutes on foot."),
+    you({
+      standard_polite:L('ありがとうございます。助かりました。','Arigatou gozaimasu. Tasukarimashita.',"Thank you, that helped."),
+      standard_keigo:L('ご親切にありがとうございます。助かりました。','Goshinsetsu ni arigatou gozaimasu. Tasukarimashita.',"Thank you for your kindness. That was a big help."),
+      kansai_casual:L('おおきに、助かったわ！','Ookini, tasukatta wa!',"Thanks, that saved me!") }),
+    them('いえいえ。気をつけて。','Ie ie. Ki o tsukete.',"Not at all. Take care."),
+  ],
+  'directions.how_far': [
+    you({
+      standard_polite:L('すみません、大阪城まで歩いて行けますか。','Sumimasen, Oosaka-jou made aruite ikemasu ka.',"Excuse me, can I walk to Osaka Castle?"),
+      standard_keigo:L('恐れ入りますが、大阪城まで歩いて行けますでしょうか。','Osoreirimasu ga, Oosaka-jou made aruite ikemasu deshou ka.',"Excuse me, would it be possible to walk to Osaka Castle?"),
+      kansai_casual:L('すんません、大阪城まで歩いて行ける？','Sunmasen, Oosaka-jou made aruite ikeru?',"Sorry, can I walk to Osaka Castle?") }),
+    them('歩くと30分くらいかかりますね。','Aruku to sanjuppun kurai kakarimasu ne.',"On foot it takes about 30 minutes."),
+    you({
+      standard_polite:L('バスのほうが早いですか。','Basu no hou ga hayai desu ka.',"Is the bus faster?"),
+      standard_keigo:L('バスのほうが早いでしょうか。','Basu no hou ga hayai deshou ka.',"Would the bus be faster?"),
+      kansai_casual:L('バスのほうが早い？','Basu no hou ga hayai?',"Is the bus faster?") }),
+    themV({
+      standard_polite:L('はい、バスなら10分で着きますよ。','Hai, basu nara juppun de tsukimasu yo.',"Yes, the bus gets there in 10 minutes."),
+      kansai_casual:L('せやな、バスなら10分で着くで。','Seya na, basu nara juppun de tsuku de.',"Yeah, the bus gets you there in 10 minutes.") }),
+    you({
+      standard_polite:L('バス停はどこですか。','Basutei wa doko desu ka.',"Where is the bus stop?"),
+      standard_keigo:L('バス停はどちらでしょうか。','Basutei wa dochira deshou ka.',"Where might the bus stop be?"),
+      kansai_casual:L('バス停どこにあるん？','Basutei doko ni aru n?',"Where's the bus stop at?") }),
+    them('あの信号を渡ったところです。','Ano shingou o watatta tokoro desu.',"It's just across that traffic light."),
+    you({
+      standard_polite:L('ありがとうございます。行ってみます。','Arigatou gozaimasu. Itte mimasu.',"Thank you. I'll give it a try."),
+      standard_keigo:L('ご丁寧にありがとうございます。行ってみます。','Goteinei ni arigatou gozaimasu. Itte mimasu.',"Thank you for your kindness. I'll give it a try."),
+      kansai_casual:L('おおきに！行ってみるわ。','Ookini! Itte miru wa.',"Thanks! I'll give it a go.") }),
+    them('気をつけてくださいね。','Ki o tsukete kudasai ne.',"Take care."),
+  ],
+  'directions.lost': [
+    you({
+      standard_polite:L('すみません、道に迷ってしまいました。','Sumimasen, michi ni mayotte shimaimashita.',"Excuse me, I've gotten lost."),
+      standard_keigo:L('恐れ入りますが、道に迷ってしまいまして。','Osoreirimasu ga, michi ni mayotte shimaimashite.',"I'm sorry to trouble you, but I've lost my way."),
+      kansai_casual:L('すんません、道に迷ってもうてん。','Sunmasen, michi ni mayotte mouten.',"Sorry, I got lost.") }),
+    them('どこに行きたいんですか。','Doko ni ikitai n desu ka.',"Where do you want to go?"),
+    you({
+      standard_polite:L('このホテルに行きたいんですが、地図を見てもらえますか。','Kono hoteru ni ikitai n desu ga, chizu o mite moraemasu ka.',"I want to go to this hotel. Could you look at the map?"),
+      standard_keigo:L('このホテルに行きたいのですが、地図をご覧いただけますでしょうか。','Kono hoteru ni ikitai no desu ga, chizu o goran itadakemasu deshou ka.',"I'm trying to reach this hotel. Would you kindly look at the map?"),
+      kansai_casual:L('このホテル行きたいねんけど、地図見てくれへん？','Kono hoteru ikitai nen kedo, chizu mite kurehen?',"I wanna go to this hotel, can you look at the map?") }),
+    themV({
+      standard_polite:L('ああ、ここは反対方向ですね。あの道を戻ってください。','Aa, koko wa hantai houkou desu ne. Ano michi o modotte kudasai.',"Ah, that's the opposite direction. Go back down that road."),
+      kansai_casual:L('ああ、ここ反対やで。あの道戻ったらええわ。','Aa, koko hantai ya de. Ano michi modottara ee wa.',"Ah, that's the opposite way. Just go back down that road.") }),
+    you({
+      standard_polite:L('反対でしたか。ありがとうございます。','Hantai deshita ka. Arigatou gozaimasu.',"The opposite way? Thank you."),
+      standard_keigo:L('反対でしたか。ご親切にありがとうございます。','Hantai deshita ka. Goshinsetsu ni arigatou gozaimasu.',"The opposite way? Thank you for your kindness."),
+      kansai_casual:L('反対やったんか。おおきに！','Hantai yattan ka. Ookini!',"Opposite way, huh? Thanks!") }),
+    them('途中まで一緒に行きましょうか。','Tochuu made issho ni ikimashou ka.',"Shall I walk with you part of the way?"),
+    you({
+      standard_polite:L('いいんですか。助かります。','Ii n desu ka. Tasukarimasu.',"Are you sure? That would help."),
+      standard_keigo:L('よろしいのですか。大変助かります。','Yoroshii no desu ka. Taihen tasukarimasu.',"Are you certain? That would be a great help."),
+      kansai_casual:L('ええん？ほんま助かるわ。','Ee n? Honma tasukaru wa.',"Really? That'd be a huge help.") }),
+    them('はい、行きましょう。','Hai, ikimashou.',"Yes, let's go."),
+  ],
+
+  /* ---- Interview (formal: polite / keigo; interviewer speaks polite) ---- */
+  'interview.strengths': [
+    them('あなたの長所を教えてください。','Anata no chousho o oshiete kudasai.',"Please tell me your strengths."),
+    you({
+      standard_polite:L('私の長所は、責任感が強いことです。','Watashi no chousho wa, sekininkan ga tsuyoi koto desu.',"My strength is a strong sense of responsibility."),
+      standard_keigo:L('私の長所は、責任感の強さだと考えております。','Watashi no chousho wa, sekininkan no tsuyosa da to kangaete orimasu.',"I consider my strength to be my strong sense of responsibility.") }),
+    them('では、短所はありますか。','Dewa, tansho wa arimasu ka.',"Then, do you have any weaknesses?"),
+    you({
+      standard_polite:L('少し心配性なところです。','Sukoshi shinpaishou na tokoro desu.',"I tend to worry a bit."),
+      standard_keigo:L('心配性なところが短所だと存じます。','Shinpaishou na tokoro ga tansho da to zonjimasu.',"I believe my weakness is that I tend to worry.") }),
+    them('それをどのように改善していますか。','Sore o dono you ni kaizen shite imasu ka.',"How are you working on that?"),
+    you({
+      standard_polite:L('事前に準備をして、不安を減らすようにしています。','Jizen ni junbi o shite, fuan o herasu you ni shite imasu.',"I prepare in advance so I feel less anxious."),
+      standard_keigo:L('事前に十分な準備をして、不安を減らすよう努めております。','Jizen ni juubun na junbi o shite, fuan o herasu you tsutomete orimasu.',"I make an effort to prepare thoroughly in advance to reduce anxiety.") }),
+    them('ありがとうございます。よくわかりました。','Arigatou gozaimasu. Yoku wakarimashita.',"Thank you. I understand well."),
+  ],
+  'interview.experience': [
+    them('これまでのご経験を教えてください。','Kore made no gokeiken o oshiete kudasai.',"Please tell me about your experience so far."),
+    you({
+      standard_polite:L('前の会社で3年間、営業をしていました。','Mae no kaisha de sannenkan, eigyou o shite imashita.',"I worked in sales at my previous company for three years."),
+      standard_keigo:L('前職では3年間、営業を担当しておりました。','Zenshoku de wa sannenkan, eigyou o tantou shite orimashita.',"In my previous job, I was in charge of sales for three years.") }),
+    them('営業でどんなことを頑張りましたか。','Eigyou de donna koto o ganbarimashita ka.',"What did you work hard on in sales?"),
+    you({
+      standard_polite:L('新しいお客様を増やすことを頑張りました。','Atarashii okyakusama o fuyasu koto o ganbarimashita.',"I worked hard on increasing new customers."),
+      standard_keigo:L('新規のお客様の開拓に力を入れておりました。','Shinki no okyakusama no kaitaku ni chikara o irete orimashita.',"I focused on developing new customers.") }),
+    them('なぜ前の会社を辞めたのですか。','Naze mae no kaisha o yameta no desu ka.',"Why did you leave your previous company?"),
+    you({
+      standard_polite:L('新しいことに挑戦したいと思ったからです。','Atarashii koto ni chousen shitai to omotta kara desu.',"Because I wanted to take on new challenges."),
+      standard_keigo:L('新しい分野に挑戦したいと考えたためでございます。','Atarashii bunya ni chousen shitai to kangaeta tame de gozaimasu.',"It was because I wanted to take on a new field.") }),
+    them('なるほど。わかりました。','Naruhodo. Wakarimashita.',"I see. Understood."),
+  ],
+  'interview.questions': [
+    them('最後に、何か質問はありますか。','Saigo ni, nanika shitsumon wa arimasu ka.',"Lastly, do you have any questions?"),
+    you({
+      standard_polite:L('はい、入社前に勉強しておくことはありますか。','Hai, nyuusha mae ni benkyou shite oku koto wa arimasu ka.',"Yes, is there anything I should study before joining?"),
+      standard_keigo:L('はい、入社前に勉強しておくべきことがありましたら、お伺いできますでしょうか。','Hai, nyuusha mae ni benkyou shite oku beki koto ga arimashitara, oukagai dekimasu deshou ka.',"Yes, if there is anything I should study before joining, might I ask about it?") }),
+    them('基本的なパソコンの操作ができれば大丈夫ですよ。','Kihonteki na pasokon no sousa ga dekireba daijoubu desu yo.',"As long as you can do basic computer operations you'll be fine."),
+    you({
+      standard_polite:L('職場の雰囲気はどうですか。','Shokuba no fun-iki wa dou desu ka.',"What's the atmosphere like at the workplace?"),
+      standard_keigo:L('職場の雰囲気はいかがでしょうか。','Shokuba no fun-iki wa ikaga deshou ka.',"How would you describe the workplace atmosphere?") }),
+    them('皆さん親切で、とても働きやすいです。','Minasan shinsetsu de, totemo hatarakiyasui desu.',"Everyone is kind and it's a very easy place to work."),
+    you({
+      standard_polite:L('安心しました。ありがとうございます。','Anshin shimashita. Arigatou gozaimasu.',"That's a relief. Thank you."),
+      standard_keigo:L('安心いたしました。ありがとうございます。','Anshin itashimashita. Arigatou gozaimasu.',"That is a relief. Thank you very much.") }),
+    them('本日はありがとうございました。','Honjitsu wa arigatou gozaimashita.',"Thank you for today."),
+  ],
+
+  /* ---- Shopping (shop: polite / keigo / kansai casual; clerk is polite) ---- */
+  'shopping.discount': [
+    you({
+      standard_polite:L('これ、もう少し安くなりませんか。','Kore, mou sukoshi yasuku narimasen ka.',"Could this be made a little cheaper?"),
+      standard_keigo:L('こちら、もう少しお安くしていただくことはできますでしょうか。','Kochira, mou sukoshi oyasuku shite itadaku koto wa dekimasu deshou ka.',"Would it be possible to lower the price a little?"),
+      kansai_casual:L('これ、もうちょいまけてくれへん？','Kore, mou choi makete kurehen?',"Could you knock a little off this?") }),
+    them('そうですね…では、5%お引きします。','Sou desu ne... dewa, go paasento ohiki shimasu.',"Well... then I can take 5% off."),
+    you({
+      standard_polite:L('2つ買ったら、もっと安くなりますか。','Futatsu kattara, motto yasuku narimasu ka.',"If I buy two, is it cheaper?"),
+      standard_keigo:L('2点購入した場合は、さらにお値引きいただけますでしょうか。','Niten kounyuu shita baai wa, sara ni onebiki itadakemasu deshou ka.',"If I purchase two, could you discount it further?"),
+      kansai_casual:L('2つ買うたら、もっと安なる？','Futatsu kautara, motto yasunaru?',"If I buy two, does it get cheaper?") }),
+    them('2つでしたら、10%お引きできます。','Futatsu deshitara, juu paasento ohiki dekimasu.',"For two, I can do 10% off."),
+    you({
+      standard_polite:L('じゃあ、2つください。','Jaa, futatsu kudasai.',"Then I'll take two."),
+      standard_keigo:L('それでは、2つお願いいたします。','Sore dewa, futatsu onegai itashimasu.',"Then two, please."),
+      kansai_casual:L('ほな、2つちょうだい。','Hona, futatsu choudai.',"Alright, I'll take two.") }),
+    them('ありがとうございます。少々お待ちください。','Arigatou gozaimasu. Shoushou omachi kudasai.',"Thank you. Please wait a moment."),
+  ],
+  'shopping.return': [
+    you({
+      standard_polite:L('すみません、これを返品したいんですが。','Sumimasen, kore o henpin shitain desu ga.',"Excuse me, I'd like to return this."),
+      standard_keigo:L('恐れ入りますが、こちらを返品したいのですが。','Osoreirimasu ga, kochira o henpin shitai no desu ga.',"I'm sorry to trouble you, but I'd like to return this."),
+      kansai_casual:L('すんません、これ返品したいねんけど。','Sunmasen, kore henpin shitai nen kedo.',"Sorry, I wanna return this.") }),
+    them('申し訳ございません。何か問題がございましたか。','Moushiwake gozaimasen. Nanika mondai ga gozaimashita ka.',"I'm sorry. Was there a problem?"),
+    you({
+      standard_polite:L('サイズが合わなかったんです。','Saizu ga awanakatta n desu.',"The size didn't fit."),
+      standard_keigo:L('サイズが合わなかったものですから。','Saizu ga awanakatta mono desu kara.',"It's because the size didn't fit."),
+      kansai_casual:L('サイズ合わへんかってん。','Saizu awahenkatten.',"The size didn't fit.") }),
+    them('レシートはお持ちですか。','Reshiito wa omochi desu ka.',"Do you have the receipt?"),
+    you({
+      standard_polite:L('はい、これです。','Hai, kore desu.',"Yes, here it is."),
+      standard_keigo:L('はい、こちらをお持ちしました。','Hai, kochira o omochi shimashita.',"Yes, I've brought it here."),
+      kansai_casual:L('うん、これやで。','Un, kore ya de.',"Yeah, here.") }),
+    them('確認いたしました。返金いたしますね。','Kakunin itashimashita. Henkin itashimasu ne.',"Confirmed. I'll process the refund."),
+  ],
+  'shopping.gift': [
+    you({
+      standard_polite:L('これ、プレゼント用に包んでもらえますか。','Kore, purezento you ni tsutsunde moraemasu ka.',"Could you wrap this as a gift?"),
+      standard_keigo:L('こちらをプレゼント用に包んでいただけますでしょうか。','Kochira o purezento you ni tsutsunde itadakemasu deshou ka.',"Would you kindly wrap this as a gift?"),
+      kansai_casual:L('これ、プレゼント用に包んでくれへん？','Kore, purezento you ni tsutsunde kurehen?',"Can you wrap this as a gift?") }),
+    them('かしこまりました。リボンの色はいかがなさいますか。','Kashikomarimashita. Ribon no iro wa ikaga nasaimasu ka.',"Certainly. What color ribbon would you like?"),
+    you({
+      standard_polite:L('赤でお願いします。','Aka de onegai shimasu.',"Red, please."),
+      standard_keigo:L('赤でお願いいたします。','Aka de onegai itashimasu.',"Red, please."),
+      kansai_casual:L('赤がええわ。','Aka ga ee wa.',"Red's good.") }),
+    them('袋もおつけしますか。','Fukuro mo otsuke shimasu ka.',"Would you like a bag as well?"),
+    you({
+      standard_polite:L('はい、お願いします。','Hai, onegai shimasu.',"Yes, please."),
+      standard_keigo:L('はい、お願いいたします。','Hai, onegai itashimasu.',"Yes, please."),
+      kansai_casual:L('うん、頼むわ。','Un, tanomu wa.',"Yeah, please.") }),
+    them('お待たせいたしました。喜んでいただけるといいですね。','Omatase itashimashita. Yorokonde itadakeru to ii desu ne.',"Thanks for waiting. I hope they'll like it."),
+  ],
+
+  /* ---- Hotel (service: polite / keigo) ---- */
+  'hotel.request': [
+    you({
+      standard_polite:L('すみません、タオルをもう1枚もらえますか。','Sumimasen, taoru o mou ichimai moraemasu ka.',"Excuse me, could I get one more towel?"),
+      standard_keigo:L('恐れ入りますが、タオルをもう1枚いただけますでしょうか。','Osoreirimasu ga, taoru o mou ichimai itadakemasu deshou ka.',"I'm sorry to trouble you, but could I have one more towel?") }),
+    them('かしこまりました。すぐにお持ちいたします。','Kashikomarimashita. Sugu ni omochi itashimasu.',"Certainly. I'll bring it right away."),
+    you({
+      standard_polite:L('それと、静かな部屋に変えてもらえますか。','Sore to, shizuka na heya ni kaete moraemasu ka.',"Also, could I change to a quieter room?"),
+      standard_keigo:L('それと、より静かなお部屋に変更していただくことは可能でしょうか。','Sore to, yori shizuka na oheya ni henkou shite itadaku koto wa kanou deshou ka.',"Also, would it be possible to change to a quieter room?") }),
+    them('申し訳ございません。確認いたしますので、少々お待ちください。','Moushiwake gozaimasen. Kakunin itashimasu node, shoushou omachi kudasai.',"I'm sorry. Let me check, please wait a moment."),
+    you({
+      standard_polite:L('明日の朝6時にモーニングコールをお願いします。','Ashita no asa rokuji ni mooningu kooru o onegai shimasu.',"A morning call at 6 tomorrow, please."),
+      standard_keigo:L('明日の朝6時にモーニングコールをお願いできますでしょうか。','Ashita no asa rokuji ni mooningu kooru o onegai dekimasu deshou ka.',"Could I request a morning call at 6 tomorrow?") }),
+    them('承知いたしました。6時にお電話いたします。','Shouchi itashimashita. Rokuji ni odenwa itashimasu.',"Understood. We'll call you at 6."),
+  ],
+  'hotel.checkout': [
+    them('おはようございます。チェックアウトでいらっしゃいますか。','Ohayou gozaimasu. Chekkuauto de irasshaimasu ka.',"Good morning. Are you checking out?"),
+    you({
+      standard_polite:L('はい、お願いします。','Hai, onegai shimasu.',"Yes, please."),
+      standard_keigo:L('はい、お願いいたします。','Hai, onegai itashimasu.',"Yes, please.") }),
+    them('お部屋の鍵をお預かりいたします。ご滞在はいかがでしたか。','Oheya no kagi o oazukari itashimasu. Gotaizai wa ikaga deshita ka.',"I'll take your room key. How was your stay?"),
+    you({
+      standard_polite:L('とても快適でした。ありがとうございました。','Totemo kaiteki deshita. Arigatou gozaimashita.',"It was very comfortable. Thank you."),
+      standard_keigo:L('大変快適に過ごすことができました。ありがとうございました。','Taihen kaiteki ni sugosu koto ga dekimashita. Arigatou gozaimashita.',"I was able to spend a very comfortable stay. Thank you.") }),
+    them('お会計は8,000円でございます。','Okaikei wa hassen-en de gozaimasu.',"Your total is 8,000 yen."),
+    you({
+      standard_polite:L('カードで払えますか。','Kaado de haraemasu ka.',"Can I pay by card?"),
+      standard_keigo:L('カードでのお支払いは可能でしょうか。','Kaado de no oshiharai wa kanou deshou ka.',"Is payment by card possible?") }),
+    them('はい、ご利用いただけます。またのお越しをお待ちしております。','Hai, goriyou itadakemasu. Mata no okoshi o omachi shite orimasu.',"Yes, that's fine. We look forward to your next visit."),
+  ],
+  'hotel.problem': [
+    you({
+      standard_polite:L('すみません、部屋のエアコンが動かないんですが。','Sumimasen, heya no eakon ga ugokanain desu ga.',"Excuse me, the air conditioner in my room isn't working."),
+      standard_keigo:L('恐れ入りますが、お部屋のエアコンが作動しないのですが。','Osoreirimasu ga, oheya no eakon ga sadou shinai no desu ga.',"I'm sorry to trouble you, but the air conditioner in my room isn't working.") }),
+    them('大変申し訳ございません。お部屋番号を教えていただけますか。','Taihen moushiwake gozaimasen. Oheya bangou o oshiete itadakemasu ka.',"We're very sorry. Could you tell me your room number?"),
+    you({
+      standard_polite:L('502号室です。','Gohyaku ni goushitsu desu.',"Room 502."),
+      standard_keigo:L('502号室でございます。','Gohyaku ni goushitsu de gozaimasu.',"It's room 502.") }),
+    them('ただいま係の者を伺わせます。','Tadaima kakari no mono o ukagawasemasu.',"I'll send someone over right away."),
+    you({
+      standard_polite:L('直るまでどのくらいかかりますか。','Naoru made dono kurai kakarimasu ka.',"How long until it's fixed?"),
+      standard_keigo:L('修理まで、どのくらいお時間がかかりますでしょうか。','Shuuri made, dono kurai ojikan ga kakarimasu deshou ka.',"How much time would the repair take?") }),
+    them('15分ほどで対応できるかと存じます。難しい場合は、別のお部屋をご用意いたします。','Juugofun hodo de taiou dekiru ka to zonjimasu. Muzukashii baai wa, betsu no oheya o goyoui itashimasu.',"We expect to handle it in about 15 minutes. If not, we'll prepare a different room."),
+  ],
+
+  /* ---- Friend (casual only; friend mirrors your dialect) ---- */
+  'friend.lunch': [
+    themV({
+      standard_casual:L('お昼、何食べたい？','Ohiru, nani tabetai?',"What do you want for lunch?"),
+      kansai_casual:L('お昼なに食べたいん？','Ohiru nani tabetain?',"What do you wanna eat for lunch?") }),
+    you({
+      standard_casual:L('うーん、ラーメンはどう？','Uun, raamen wa dou?',"Hmm, how about ramen?"),
+      kansai_casual:L('せやなあ、ラーメンどう？','Seya naa, raamen dou?',"Well, how about ramen?") }),
+    themV({
+      standard_casual:L('いいね。でも昨日も食べたんだよね。','Ii ne. Demo kinou mo tabeta n da yo ne.',"Sounds good, but I had it yesterday too."),
+      kansai_casual:L('ええな。でも昨日も食べてん。','Ee na. Demo kinou mo tabeten.',"Nice, but I had it yesterday too.") }),
+    you({
+      standard_casual:L('じゃあ、カレーにしようか。','Jaa, karee ni shiyou ka.',"Then how about curry?"),
+      kansai_casual:L('ほな、カレーにしよか。','Hona, karee ni shiyoka.',"Alright, how about curry?") }),
+    themV({
+      standard_casual:L('いいね、カレーにしよう！','Ii ne, karee ni shiyou!',"Sounds good, curry it is!"),
+      kansai_casual:L('ええな、カレーにしよ！','Ee na, karee ni shiyo!',"Nice, curry it is!") }),
+    you({
+      standard_casual:L('おごるよ、この前のお礼に。','Ogoru yo, kono mae no orei ni.',"My treat, to thank you for last time."),
+      kansai_casual:L('おごるわ、この前のお礼や。','Ogoru wa, kono mae no orei ya.',"My treat, to thank you for last time.") }),
+    themV({
+      standard_casual:L('ほんと？ありがとう！','Honto? Arigatou!',"Really? Thanks!"),
+      kansai_casual:L('ほんま？おおきに！','Honma? Ookini!',"Really? Thanks!") }),
+  ],
+  'friend.late': [
+    themV({
+      standard_casual:L('今どこ？もう着いたよ。','Ima doko? Mou tsuita yo.',"Where are you now? I'm already here."),
+      kansai_casual:L('今どこ？もう着いてるで。','Ima doko? Mou tsuiteru de.',"Where are you now? I'm already here.") }),
+    you({
+      standard_casual:L('ごめん、電車が遅れてて、あと10分かかる。','Gomen, densha ga okurete te, ato juppun kakaru.',"Sorry, the train is delayed, it'll be 10 more minutes."),
+      kansai_casual:L('ごめん、電車遅れててあと10分かかるわ。','Gomen, densha okuretete ato juppun kakaru wa.',"Sorry, the train's delayed, it'll be 10 more minutes.") }),
+    themV({
+      standard_casual:L('わかった。カフェで待ってるね。','Wakatta. Kafe de matteru ne.',"Okay. I'll wait at the café."),
+      kansai_casual:L('わかった。カフェで待ってるわ。','Wakatta. Kafe de matteru wa.',"Okay. I'll wait at the café.") }),
+    you({
+      standard_casual:L('ほんとごめん。何か飲み物おごるよ。','Honto gomen. Nanika nomimono ogoru yo.',"I'm really sorry. I'll buy you a drink."),
+      kansai_casual:L('ほんまごめん。何か飲み物おごるわ。','Honma gomen. Nanika nomimono ogoru wa.',"I'm really sorry. I'll buy you a drink.") }),
+    themV({
+      standard_casual:L('じゃあ、一番高いのにしようかな。','Jaa, ichiban takai no ni shiyou kana.',"Then I might pick the most expensive one."),
+      kansai_casual:L('ほな、一番高いのにしよかな。','Hona, ichiban takai no ni shiyoka na.',"Then I might pick the most expensive one.") }),
+    you({
+      standard_casual:L('それはやめて！すぐ行くから。','Sore wa yamete! Sugu iku kara.',"Don't! I'll be there soon."),
+      kansai_casual:L('それはやめてや！すぐ行くから。','Sore wa yamete ya! Sugu iku kara.',"Don't! I'll be there soon.") }),
+    themV({
+      standard_casual:L('冗談だよ。ゆっくりでいいよ。','Joudan da yo. Yukkuri de ii yo.',"Just kidding. Take your time."),
+      kansai_casual:L('冗談やて。ゆっくりでええで。','Joudan yate. Yukkuri de ee de.',"Just kidding. Take your time.") }),
+  ],
+  'friend.birthday': [
+    themV({
+      standard_casual:L('来週、私の誕生日なんだ。','Raishuu, watashi no tanjoubi nan da.',"My birthday is next week."),
+      kansai_casual:L('来週、私の誕生日やねん。','Raishuu, watashi no tanjoubi ya nen.',"My birthday is next week.") }),
+    you({
+      standard_casual:L('おめでとう！何かやりたいことある？','Omedetou! Nanika yaritai koto aru?',"Congrats! Is there anything you want to do?"),
+      kansai_casual:L('おめでとう！何かしたいことあるん？','Omedetou! Nanika shitai koto arun?',"Congrats! Anything you wanna do?") }),
+    themV({
+      standard_casual:L('みんなで焼肉に行きたいな。','Minna de yakiniku ni ikitai na.',"I'd like to go for yakiniku with everyone."),
+      kansai_casual:L('みんなで焼肉行きたいなあ。','Minna de yakiniku ikitai naa.',"I'd love to go for yakiniku with everyone.") }),
+    you({
+      standard_casual:L('いいね！お店は私が予約しておくよ。','Ii ne! Omise wa watashi ga yoyaku shite oku yo.',"Nice! I'll book the restaurant."),
+      kansai_casual:L('ええな！店は私が予約しとくわ。','Ee na! Mise wa watashi ga yoyaku shitoku wa.',"Nice! I'll book the place.") }),
+    themV({
+      standard_casual:L('ありがとう。プレゼントは気にしないでね。','Arigatou. Purezento wa ki ni shinaide ne.',"Thanks. Don't worry about a present."),
+      kansai_casual:L('ありがとう。プレゼントは気にせんといてな。','Arigatou. Purezento wa ki ni sen toite na.',"Thanks. Don't worry about a present.") }),
+    you({
+      standard_casual:L('だめだよ、ちゃんと用意するから楽しみにしてて。','Dame da yo, chanto youi suru kara tanoshimi ni shitete.',"No way, I'll get you something, so look forward to it."),
+      kansai_casual:L('あかんて、ちゃんと用意するから楽しみにしといてな。','Akan te, chanto youi suru kara tanoshimi ni shitoite na.',"No way, I'll get you something, so look forward to it.") }),
+    themV({
+      standard_casual:L('うれしい！楽しみにしてる！','Ureshii! Tanoshimi ni shiteru!',"So happy! Can't wait!"),
+      kansai_casual:L('うれしい！楽しみにしてるわ！','Ureshii! Tanoshimi ni shiteru wa!',"So happy! Can't wait!") }),
+  ],
+
+  /* ---- Doctor (service: polite / keigo) ---- */
+  'doctor.reception': [
+    them('こんにちは。初診でいらっしゃいますか。','Konnichiwa. Shoshin de irasshaimasu ka.',"Hello. Is this your first visit?"),
+    you({
+      standard_polite:L('はい、初めてです。','Hai, hajimete desu.',"Yes, it's my first time."),
+      standard_keigo:L('はい、初めて伺いました。','Hai, hajimete ukagaimashita.',"Yes, this is my first visit.") }),
+    them('保険証をお預かりしてもよろしいですか。','Hokenshou o oazukari shite mo yoroshii desu ka.',"May I take your insurance card?"),
+    you({
+      standard_polite:L('はい、これです。お願いします。','Hai, kore desu. Onegai shimasu.',"Yes, here it is. Please."),
+      standard_keigo:L('はい、こちらをお願いいたします。','Hai, kochira o onegai itashimasu.',"Yes, here you are, please.") }),
+    them('こちらの問診票にご記入ください。','Kochira no monshinhyou ni gokinyuu kudasai.',"Please fill out this questionnaire."),
+    you({
+      standard_polite:L('日本語で書けないので、手伝ってもらえますか。','Nihongo de kakenai node, tetsudatte moraemasu ka.',"I can't write in Japanese, could you help me?"),
+      standard_keigo:L('日本語で書くのが難しいので、お手伝いいただけますでしょうか。','Nihongo de kaku no ga muzukashii node, otetsudai itadakemasu deshou ka.',"Writing in Japanese is difficult for me. Would you be able to help?") }),
+    them('はい、お手伝いいたします。','Hai, otetsudai itashimasu.',"Yes, I'll help you."),
+  ],
+  'doctor.pharmacy': [
+    them('処方箋をお預かりします。','Shohousen o oazukari shimasu.',"I'll take your prescription."),
+    you({
+      standard_polite:L('これをお願いします。','Kore o onegai shimasu.',"This one, please."),
+      standard_keigo:L('こちらをお願いいたします。','Kochira o onegai itashimasu.',"This one, please.") }),
+    them('お待たせいたしました。こちらのお薬は、1日3回、食後にお飲みください。','Omatase itashimashita. Kochira no okusuri wa, ichinichi sankai, shokugo ni onomi kudasai.',"Thanks for waiting. Take this medicine three times a day after meals."),
+    you({
+      standard_polite:L('食後というのは、食べてすぐですか。','Shokugo to iu no wa, tabete sugu desu ka.',"Does after meals mean right after eating?"),
+      standard_keigo:L('食後というのは、食べてすぐでよろしいのでしょうか。','Shokugo to iu no wa, tabete sugu de yoroshii no deshou ka.',"Is right after eating what after meals means?") }),
+    them('はい、食後30分以内にお飲みください。','Hai, shokugo sanjuppun inai ni onomi kudasai.',"Yes, please take it within 30 minutes after eating."),
+    you({
+      standard_polite:L('眠くなる薬ですか。','Nemuku naru kusuri desu ka.',"Is it a drowsy medicine?"),
+      standard_keigo:L('眠くなるお薬でしょうか。','Nemuku naru okusuri deshou ka.',"Is it a medicine that causes drowsiness?") }),
+    them('少し眠くなることがありますので、運転はお控えください。','Sukoshi nemuku naru koto ga arimasu node, unten wa ohikae kudasai.',"It may cause some drowsiness, so please refrain from driving."),
+  ],
+  'doctor.injury': [
+    them('どうなさいましたか。','Dou nasaimashita ka.',"What happened?"),
+    you({
+      standard_polite:L('階段で転んで、足首が痛いんです。','Kaidan de koronde, ashikubi ga itain desu.',"I fell on the stairs and my ankle hurts."),
+      standard_keigo:L('階段で転んでしまい、足首を痛めてしまいました。','Kaidan de koronde shimai, ashikubi o itamete shimaimashita.',"I fell on the stairs and hurt my ankle.") }),
+    them('見せていただけますか。少し触りますね。痛いですか。','Misete itadakemasu ka. Sukoshi sawarimasu ne. Itai desu ka.',"May I see it? I'll touch it lightly. Does it hurt?"),
+    you({
+      standard_polite:L('はい、そこがとても痛いです。','Hai, soko ga totemo itai desu.',"Yes, that spot hurts a lot."),
+      standard_keigo:L('はい、そこが大変痛みます。','Hai, soko ga taihen itamimasu.',"Yes, that spot hurts quite a bit.") }),
+    them('骨は大丈夫そうですが、念のためレントゲンを撮りましょう。','Hone wa daijoubu sou desu ga, nen no tame rentogen o torimashou.',"The bone seems fine, but let's take an X-ray to be safe."),
+    you({
+      standard_polite:L('歩いても大丈夫ですか。','Aruite mo daijoubu desu ka.',"Is it okay to walk?"),
+      standard_keigo:L('歩いてもよろしいでしょうか。','Aruite mo yoroshii deshou ka.',"Would it be all right to walk?") }),
+    them('数日は安静にして、あまり動かないでください。','Suujitsu wa ansei ni shite, amari ugokanai de kudasai.',"Rest for a few days and don't move around much."),
+  ],
+
+  /* ---- Station (service: polite / keigo) ---- */
+  'station.ic': [
+    you({
+      standard_polite:L('すみません、ICカードにチャージしたいんですが。','Sumimasen, IC kaado ni chaaji shitain desu ga.',"Excuse me, I'd like to top up my IC card."),
+      standard_keigo:L('恐れ入りますが、ICカードにチャージをお願いしたいのですが。','Osoreirimasu ga, IC kaado ni chaaji o onegai shitai no desu ga.',"I'm sorry to trouble you, but I'd like to top up my IC card.") }),
+    them('かしこまりました。おいくらチャージなさいますか。','Kashikomarimashita. Oikura chaaji nasaimasu ka.',"Certainly. How much would you like to add?"),
+    you({
+      standard_polite:L('3000円お願いします。','Sanzen-en onegai shimasu.',"3,000 yen, please."),
+      standard_keigo:L('3,000円をお願いいたします。','Sanzen-en o onegai itashimasu.',"3,000 yen, please.") }),
+    them('3000円ですね。カードをこちらにお置きください。','Sanzen-en desu ne. Kaado o kochira ni ookikudasai.',"3,000 yen. Please place your card here."),
+    you({
+      standard_polite:L('残高を確認できますか。','Zandaka o kakunin dekimasu ka.',"Can I check my balance?"),
+      standard_keigo:L('残高を確認していただけますでしょうか。','Zandaka o kakunin shite itadakemasu deshou ka.',"Would you be able to check my balance?") }),
+    them('はい、現在の残高は3,500円でございます。','Hai, genzai no zandaka wa sanzen gohyaku-en de gozaimasu.',"Yes, your current balance is 3,500 yen."),
+  ],
+  'station.transfer': [
+    you({
+      standard_polite:L('東京駅に行きたいんですが、どの電車に乗ればいいですか。','Toukyou-eki ni ikitain desu ga, dono densha ni noreba ii desu ka.',"I want to go to Tokyo Station. Which train should I take?"),
+      standard_keigo:L('東京駅まで行きたいのですが、どちらの電車に乗ればよろしいでしょうか。','Toukyou-eki made ikitai no desu ga, dochira no densha ni noreba yoroshii deshou ka.',"I'd like to go to Tokyo Station. Which train would be best?") }),
+    them('新宿で中央線に乗り換えてください。','Shinjuku de Chuuousen ni norikaete kudasai.',"Please transfer to the Chuo Line at Shinjuku."),
+    you({
+      standard_polite:L('乗り換えは何番線ですか。','Norikae wa nanbansen desu ka.',"Which platform is the transfer?"),
+      standard_keigo:L('乗り換えは何番線でしょうか。','Norikae wa nanbansen deshou ka.',"Which platform might the transfer be?") }),
+    them('7番線でございます。階段を上がって右側です。','Nanabansen de gozaimasu. Kaidan o agatte migigawa desu.',"Platform 7. Go up the stairs and it's on the right."),
+    you({
+      standard_polite:L('何分くらいかかりますか。','Nanpun kurai kakarimasu ka.',"About how many minutes does it take?"),
+      standard_keigo:L('所要時間はどのくらいでしょうか。','Shoyou jikan wa dono kurai deshou ka.',"About how long would the trip take?") }),
+    them('乗り換えを入れて、約25分でございます。','Norikae o irete, yaku nijuugofun de gozaimasu.',"Including the transfer, about 25 minutes."),
+  ],
+  'station.shinkansen': [
+    you({
+      standard_polite:L('京都まで新幹線の切符をください。','Kyouto made shinkansen no kippu o kudasai.',"A shinkansen ticket to Kyoto, please."),
+      standard_keigo:L('京都までの新幹線の切符をお願いいたします。','Kyouto made no shinkansen no kippu o onegai itashimasu.',"A shinkansen ticket to Kyoto, please.") }),
+    them('指定席と自由席がございますが、どちらになさいますか。','Shiteiseki to jiyuuseki ga gozaimasu ga, dochira ni nasaimasu ka.',"We have reserved and non-reserved seats. Which would you like?"),
+    you({
+      standard_polite:L('指定席でお願いします。','Shiteiseki de onegai shimasu.',"Reserved, please."),
+      standard_keigo:L('指定席でお願いいたします。','Shiteiseki de onegai itashimasu.',"Reserved, please.") }),
+    them('窓側と通路側がございますが。','Madogawa to tsuurogawa ga gozaimasu ga.',"Window or aisle?"),
+    you({
+      standard_polite:L('窓側がいいです。','Madogawa ga ii desu.',"Window, please."),
+      standard_keigo:L('窓側の席をお願いできますでしょうか。','Madogawa no seki o onegai dekimasu deshou ka.',"Could I have a window seat, please?") }),
+    them('かしこまりました。14,000円でございます。','Kashikomarimashita. Ichiman yonsen-en de gozaimasu.',"Certainly. That's 14,000 yen."),
+  ],
+
+  /* ---- Workplace (coworker: polite / keigo / kansai casual) ---- */
+  'workplace.meeting': [
+    them('田中さん、来週の会議の日程を決めたいんですが。','Tanaka-san, raishuu no kaigi no nittei o kimetain desu ga.',"Tanaka, I'd like to set the schedule for next week's meeting."),
+    you({
+      standard_polite:L('火曜日の午後は空いています。','Kayoubi no gogo wa aite imasu.',"I'm free Tuesday afternoon."),
+      standard_keigo:L('火曜日の午後でしたら、都合がつきます。','Kayoubi no gogo deshitara, tsugou ga tsukimasu.',"Tuesday afternoon works for me."),
+      kansai_casual:L('火曜の午後やったら空いてるで。','Kayou no gogo yattara aiteru de.',"I'm free Tuesday afternoon.") }),
+    them('火曜日は他の人が難しいそうです。水曜日はどうですか。','Kayoubi wa hoka no hito ga muzukashii sou desu. Suiyoubi wa dou desu ka.',"Others say Tuesday is hard. How about Wednesday?"),
+    you({
+      standard_polite:L('水曜日なら大丈夫です。何時からですか。','Suiyoubi nara daijoubu desu. Nanji kara desu ka.',"Wednesday is fine. From what time?"),
+      standard_keigo:L('水曜日で問題ございません。何時からでしょうか。','Suiyoubi de mondai gozaimasen. Nanji kara deshou ka.',"Wednesday is no problem. From what time?"),
+      kansai_casual:L('水曜やったら大丈夫や。何時からなん？','Suiyou yattara daijoubu ya. Nanji kara nan?',"Wednesday's fine. From what time?") }),
+    them('10時からで、1時間くらいの予定です。','Juuji kara de, ichijikan kurai no yotei desu.',"From 10, for about an hour."),
+    you({
+      standard_polite:L('わかりました。会議室は予約しておきます。','Wakarimashita. Kaigishitsu wa yoyaku shite okimasu.',"Understood. I'll book the meeting room."),
+      standard_keigo:L('承知いたしました。会議室は私のほうで予約しておきます。','Shouchi itashimashita. Kaigishitsu wa watashi no hou de yoyaku shite okimasu.',"Understood. I'll take care of booking the meeting room."),
+      kansai_casual:L('わかった。会議室は予約しとくわ。','Wakatta. Kaigishitsu wa yoyaku shitoku wa.',"Got it. I'll book the meeting room.") }),
+    them('ありがとうございます。助かります。','Arigatou gozaimasu. Tasukarimasu.',"Thank you. That helps."),
+  ],
+  'workplace.help': [
+    you({
+      standard_polite:L('すみません、今、ちょっとお時間いいですか。','Sumimasen, ima, chotto ojikan ii desu ka.',"Sorry, do you have a moment?"),
+      standard_keigo:L('恐れ入ります、今、お時間をいただいてもよろしいでしょうか。','Osoreirimasu, ima, ojikan o itadaite mo yoroshii deshou ka.',"Excuse me, might I take a moment of your time?"),
+      kansai_casual:L('ごめん、今ちょっとええ？','Gomen, ima chotto ee?',"Sorry, you got a sec?") }),
+    them('はい、どうしましたか。','Hai, dou shimashita ka.',"Sure, what is it?"),
+    you({
+      standard_polite:L('このデータの出し方がわからないんです。教えてもらえますか。','Kono deeta no dashikata ga wakaranain desu. Oshiete moraemasu ka.',"I don't know how to pull this data. Could you show me?"),
+      standard_keigo:L('このデータの抽出方法がわからず困っております。ご教示いただけますでしょうか。','Kono deeta no chuushutsu houhou ga wakarazu komatte orimasu. Gokyouji itadakemasu deshou ka.',"I'm struggling to work out how to extract this data. Would you kindly instruct me?"),
+      kansai_casual:L('このデータの出し方わからへんねん。教えてくれる？','Kono deeta no dashikata wakarahen nen. Oshiete kureru?',"I can't figure out how to pull this data. Can you show me?") }),
+    them('いいですよ。一緒にやってみましょう。','Ii desu yo. Issho ni yatte mimashou.',"Sure. Let's try it together."),
+    you({
+      standard_polite:L('ここをクリックすればいいですか。','Koko o kurikku sureba ii desu ka.',"Do I just click here?"),
+      standard_keigo:L('こちらをクリックすればよろしいでしょうか。','Kochira o kurikku sureba yoroshii deshou ka.',"Should I click here?"),
+      kansai_casual:L('ここクリックしたらええ？','Koko kurikku shitara ee?',"Do I just click here?") }),
+    them('そうです。あとは日付を選んでください。','Sou desu. Ato wa hizuke o erande kudasai.',"That's right. Then choose the date."),
+    you({
+      standard_polite:L('できました！助かりました。','Dekimashita! Tasukarimashita.',"I did it! That helped a lot."),
+      standard_keigo:L('できました。誠にありがとうございました。','Dekimashita. Makoto ni arigatou gozaimashita.',"It's done. Thank you very much."),
+      kansai_casual:L('できたわ！ほんま助かったわ。','Dekita wa! Honma tasukatta wa.',"Done! You really saved me.") }),
+    them('よかったです。また聞いてくださいね。','Yokatta desu. Mata kiite kudasai ne.',"Good. Feel free to ask again."),
+  ],
+  'workplace.leave': [
+    you({
+      standard_polite:L('来月の15日に休みをいただきたいんですが。','Raigetsu no juugonichi ni yasumi o itadakitain desu ga.',"I'd like to take the 15th of next month off."),
+      standard_keigo:L('来月の15日に休暇をいただきたく存じます。','Raigetsu no juugonichi ni kyuuka o itadakitaku zonjimasu.',"I would like to request leave on the 15th of next month."),
+      kansai_casual:L('来月の15日休みたいねんけど。','Raigetsu no juugonichi yasumitai nen kedo.',"I wanna take the 15th of next month off.") }),
+    them('15日ですね。何か予定があるんですか。','Juugonichi desu ne. Nanika yotei ga aru n desu ka.',"The 15th. Do you have plans?"),
+    you({
+      standard_polite:L('家族の用事があるんです。','Kazoku no youji ga aru n desu.',"I have a family matter."),
+      standard_keigo:L('家族の用事がございまして。','Kazoku no youji ga gozaimashite.',"I have a family matter to attend to."),
+      kansai_casual:L('家族の用事があんねん。','Kazoku no youji ga an nen.',"I've got a family thing.") }),
+    them('わかりました。その日は大きな会議もないので大丈夫ですよ。','Wakarimashita. Sono hi wa ookina kaigi mo nai node daijoubu desu yo.',"Understood. There's no big meeting that day, so it's fine."),
+    you({
+      standard_polite:L('休む前に仕事を終わらせておきます。','Yasumu mae ni shigoto o owarasete okimasu.',"I'll finish my work before I'm off."),
+      standard_keigo:L('休暇前に、担当の業務は必ず終わらせておきます。','Kyuuka mae ni, tantou no gyoumu wa kanarazu owarasete okimasu.',"Before my leave, I will be sure to finish my assigned work."),
+      kansai_casual:L('休む前に仕事終わらせとくわ。','Yasumu mae ni shigoto owarasetoku wa.',"I'll get my work done before I'm off.") }),
+    them('お願いします。ゆっくり休んでくださいね。','Onegaishimasu. Yukkuri yasunde kudasai ne.',"Please do. Enjoy your time off."),
+  ],
+
+  /* ---- Advice (coworker: polite / keigo / kansai casual; the listener is warm and casual) ---- */
+  'advice.career': [
+    you({
+      standard_polite:L('実は、転職しようか迷っているんです。','Jitsu wa, tenshoku shiyou ka mayotte iru n desu.',"Actually, I'm thinking about changing jobs."),
+      standard_keigo:L('実は、転職を考えておりまして、ご相談したいのですが。','Jitsu wa, tenshoku o kangaete orimashite, gosoudan shitai no desu ga.',"Actually, I've been considering changing jobs and would like your advice."),
+      kansai_casual:L('実は、転職しよかなと思ってんねん。','Jitsu wa, tenshoku shiyoka na to omotten nen.',"Actually, I'm thinking about changing jobs.") }),
+    them('そうなんだ。今の仕事に何か不満があるの？','Sou nan da. Ima no shigoto ni nanika fuman ga aru no?',"I see. Are you unhappy with your current job?"),
+    you({
+      standard_polite:L('給料はいいですが、成長できていない気がします。','Kyuuryou wa ii desu ga, seichou dekite inai ki ga shimasu.',"The pay is good, but I feel I'm not growing."),
+      standard_keigo:L('給与面は満足しておりますが、成長できていないように感じております。','Kyuuyomen wa manzoku shite orimasu ga, seichou dekite inai you ni kanjite orimasu.',"I'm satisfied with the pay, but I feel I'm not growing."),
+      kansai_casual:L('給料はええけど、成長できてへん気ぃするねん。','Kyuuryou wa ee kedo, seichou dekitehen kii suru nen.',"The pay's good, but I feel like I'm not growing.") }),
+    them('なるほどね。やりたいことははっきりしてるの？','Naruhodo ne. Yaritai koto wa hakkiri shiteru no?',"I see. Are you clear on what you want to do?"),
+    you({
+      standard_polite:L('まだ少し迷っています。','Mada sukoshi mayotte imasu.',"I'm still a bit unsure."),
+      standard_keigo:L('まだ迷っている段階でございます。','Mada mayotte iru dankai de gozaimasu.',"I'm still at the stage of deciding."),
+      kansai_casual:L('まだちょっと迷ってんねん。','Mada chotto mayotten nen.',"I'm still a bit unsure.") }),
+    them('焦らなくていいよ。ゆっくり考えてみて。','Aseranakute ii yo. Yukkuri kangaete mite.',"No need to rush. Think it over slowly."),
+  ],
+  'advice.study': [
+    you({
+      standard_polite:L('日本語の勉強で、ちょっと相談があるんですが。','Nihongo no benkyou de, chotto soudan ga arun desu ga.',"I have something to ask about studying Japanese."),
+      standard_keigo:L('日本語の勉強について、ご相談したいことがございまして。','Nihongo no benkyou ni tsuite, gosoudan shitai koto ga gozaimashite.',"There is something I would like to consult you about regarding Japanese study."),
+      kansai_casual:L('日本語の勉強のことで、ちょっと相談あんねんけど。','Nihongo no benkyou no koto de, chotto soudan an nen kedo.',"I've got something to ask you about studying Japanese.") }),
+    them('いいよ。どんなことで困ってるの？','Ii yo. Donna koto de komatteru no?',"Sure. What are you having trouble with?"),
+    you({
+      standard_polite:L('漢字がなかなか覚えられないんです。','Kanji ga nakanaka oboerarenain desu.',"I just can't seem to memorize kanji."),
+      standard_keigo:L('漢字がなかなか覚えられず、悩んでおります。','Kanji ga nakanaka oboerarezu, nayande orimasu.',"I've been struggling because I can't memorize kanji."),
+      kansai_casual:L('漢字がなかなか覚えられへんねん。','Kanji ga nakanaka oboeraren nen.',"I just can't memorize kanji.") }),
+    them('毎日少しずつ書いて、声に出して読むといいよ。','Mainichi sukoshi zutsu kaite, koe ni dashite yomu to ii yo.',"It helps to write a little each day and read aloud."),
+    you({
+      standard_polite:L('なるほど。毎日どのくらいやればいいですか。','Naruhodo. Mainichi dono kurai yareba ii desu ka.',"I see. How much should I do each day?"),
+      standard_keigo:L('なるほど。毎日どの程度取り組めばよろしいでしょうか。','Naruhodo. Mainichi dono teido torikumeba yoroshii deshou ka.',"I see. How much should I work at it each day?"),
+      kansai_casual:L('なるほどな。毎日どのくらいやったらええ？','Naruhodo na. Mainichi dono kurai yattara ee?',"I see. How much should I do each day?") }),
+    them('15分でも続けるほうが大事だよ。','Juugofun demo tsuzukeru hou ga daiji da yo.',"Even 15 minutes matters if you keep it up."),
+    you({
+      standard_polite:L('ありがとうございます。やってみます。','Arigatou gozaimasu. Yatte mimasu.',"Thank you. I'll try it."),
+      standard_keigo:L('ありがとうございます。早速実践してみます。','Arigatou gozaimasu. Sassoku jissen shite mimasu.',"Thank you. I'll put it into practice right away."),
+      kansai_casual:L('ありがとう。やってみるわ。','Arigatou. Yatte miru wa.',"Thanks. I'll give it a go.") }),
+    them('頑張ってね。応援してるよ。','Ganbatte ne. Ouen shiteru yo.',"Good luck. I'm rooting for you."),
+  ],
+  'advice.moving': [
+    you({
+      standard_polite:L('来月、引っ越そうかと思っているんですが。','Raigetsu, hikkosou ka to omotte iru n desu ga.',"I'm thinking of moving next month."),
+      standard_keigo:L('来月、引っ越しを考えておりまして、ご意見を伺えますでしょうか。','Raigetsu, hikkoshi o kangaete orimashite, goiken o ukagaemasu deshou ka.',"I'm considering moving next month. Might I ask for your opinion?"),
+      kansai_casual:L('来月、引っ越そかなと思ってんねんけど。','Raigetsu, hikkosoka na to omotten nen kedo.',"I'm thinking of moving next month.") }),
+    them('そうなんだ。どのあたりに住みたいの？','Sou nan da. Dono atari ni sumitai no?',"Oh really. Where do you want to live?"),
+    you({
+      standard_polite:L('会社に近いところがいいです。','Kaisha ni chikai tokoro ga ii desu.',"Somewhere close to work."),
+      standard_keigo:L('会社に近い場所を希望しております。','Kaisha ni chikai basho o kibou shite orimasu.',"I'm hoping for somewhere close to work."),
+      kansai_casual:L('会社の近くがええねん。','Kaisha no chikaku ga ee nen.',"Somewhere near work would be good.") }),
+    them('家賃は高いけど、通勤が楽になるよね。','Yachin wa takai kedo, tsuukin ga raku ni naru yo ne.',"Rent is high, but the commute gets easier."),
+    you({
+      standard_polite:L('そうなんです。家賃が心配です。','Sou nan desu. Yachin ga shinpai desu.',"Exactly. I'm worried about the rent."),
+      standard_keigo:L('おっしゃる通りです。家賃が少々気がかりでして。','Ossharu toori desu. Yachin ga shoushou kigakari deshite.',"You're quite right. The rent is a bit of a concern."),
+      kansai_casual:L('せやねん。家賃が心配やねん。','Seya nen. Yachin ga shinpai ya nen.',"Right? I'm worried about the rent.") }),
+    them('予算を決めてから探すといいよ。','Yosan o kimete kara sagasu to ii yo.',"It helps to set a budget before searching."),
+    you({
+      standard_polite:L('はい、そうしてみます。','Hai, sou shite mimasu.',"Yes, I'll try that."),
+      standard_keigo:L('はい、そのようにいたします。','Hai, sono you ni itashimasu.',"Yes, I will do so."),
+      kansai_casual:L('うん、そうするわ。','Un, sou suru wa.',"Yeah, I'll do that.") }),
+    them('いい部屋が見つかるといいね。','Ii heya ga mitsukaru to ii ne.',"I hope you find a good place."),
+  ],
+
+  /* ---- Argument & making up (casual only; friend mirrors your dialect) ---- */
+  'argument.forgot': [
+    themV({
+      standard_casual:L('今日、約束してたよね？ずっと待ってたんだけど。','Kyou, yakusoku shiteta yo ne? Zutto matteta n da kedo.',"We had plans today, right? I've been waiting the whole time."),
+      kansai_casual:L('今日、約束してたやんな？ずっと待ってたんやけど。','Kyou, yakusoku shiteta yan na? Zutto matteta n yakedo.',"We had plans today, right? I've been waiting the whole time.") }),
+    you({
+      standard_casual:L('あっ、ごめん！すっかり忘れてた。','A, gomen! Sukkari wasureteta.',"Oh, sorry! I totally forgot."),
+      kansai_casual:L('あっ、ごめん！すっかり忘れてたわ。','A, gomen! Sukkari wasureteta wa.',"Oh, sorry! I totally forgot.") }),
+    themV({
+      standard_casual:L('連絡もなかったし、心配したんだよ。','Renraku mo nakatta shi, shinpai shita n da yo.',"You didn't contact me either, I was worried."),
+      kansai_casual:L('連絡もなかったし、心配したんやで。','Renraku mo nakatta shi, shinpai shitan ya de.',"You didn't contact me either, I was worried.") }),
+    you({
+      standard_casual:L('本当にごめん。今から行くよ。','Hontou ni gomen. Ima kara iku yo.',"I'm really sorry. I'll head over now."),
+      kansai_casual:L('ほんまごめん。今から行くわ。','Honma gomen. Ima kara iku wa.',"I'm really sorry. I'll head over now.") }),
+    themV({
+      standard_casual:L('もう帰ろうと思ってたけど…わかった、待ってる。','Mou kaerou to omotteta kedo... wakatta, matteru.',"I was about to go home... fine, I'll wait."),
+      kansai_casual:L('もう帰ろ思てたけど…わかった、待っとくわ。','Mou kaero omoteta kedo... wakatta, matotoku wa.',"I was about to go home... fine, I'll wait.") }),
+    you({
+      standard_casual:L('ありがとう。お詫びにご飯おごるから。','Arigatou. Owabi ni gohan ogoru kara.',"Thanks. I'll treat you to a meal to make up for it."),
+      kansai_casual:L('おおきに。お詫びにご飯おごるわ。','Ookini. Owabi ni gohan ogoru wa.',"Thanks. I'll treat you to a meal to make up for it.") }),
+    themV({
+      standard_casual:L('それならいいよ。早く来てね。','Sore nara ii yo. Hayaku kite ne.',"Then it's fine. Hurry over."),
+      kansai_casual:L('それやったらええよ。早う来てな。','Sore yattara ee yo. Hayou kite na.',"Then it's fine. Hurry over.") }),
+  ],
+  'argument.broke': [
+    you({
+      standard_casual:L('ごめん、借りてたカメラ、壊しちゃったんだ。','Gomen, karitete kamera, kowashichatta n da.',"Sorry, I broke the camera I borrowed."),
+      kansai_casual:L('ごめん、借りてたカメラ、壊してもうてん。','Gomen, karitete kamera, kowashite mouten.',"Sorry, I broke the camera I borrowed.") }),
+    themV({
+      standard_casual:L('え、うそ？あれ高かったのに…。','E, uso? Are takakatta noni...',"What, seriously? That was expensive..."),
+      kansai_casual:L('え、うそやん？あれ高かってんで…。','E, uso yan? Are takakatten de...',"What, seriously? That was expensive...") }),
+    you({
+      standard_casual:L('ちゃんと弁償するから、許してほしい。','Chanto benshou suru kara, yurushite hoshii.',"I'll pay for it, so I hope you'll forgive me."),
+      kansai_casual:L('ちゃんと弁償するから、許してほしいねん。','Chanto benshou suru kara, yurushite hoshii nen.',"I'll pay for it, so I hope you'll forgive me.") }),
+    themV({
+      standard_casual:L('お金の問題じゃないよ。大事にしてたんだから。','Okane no mondai ja nai yo. Daiji ni shiteta n da kara.',"It's not about money. I treasured it."),
+      kansai_casual:L('お金の問題ちゃうねん。大事にしてたんやから。','Okane no mondai chau nen. Daiji ni shiteta n yakara.',"It's not about money. I treasured it.") }),
+    you({
+      standard_casual:L('そうだよね。本当に反省してる。','Sou da yo ne. Hontou ni hansei shiteru.',"You're right. I'm truly sorry."),
+      kansai_casual:L('せやんな。ほんまに反省してる。','Seya n na. Honma ni hansei shiteru.',"You're right. I'm truly sorry.") }),
+    themV({
+      standard_casual:L('わかった。次からは気をつけてね。','Wakatta. Tsugi kara wa ki o tsukete ne.',"Okay. Be careful next time."),
+      kansai_casual:L('わかった。次から気ぃつけてや。','Wakatta. Tsugi kara kii tsukete ya.',"Okay. Be careful next time.") }),
+  ],
+  'argument.hurtful': [
+    themV({
+      standard_casual:L('さっきの言い方、ちょっとひどくない？','Sakki no iikata, chotto hidokunai?',"Wasn't the way you said that a bit harsh?"),
+      kansai_casual:L('さっきの言い方、ちょっとひどいんちゃう？','Sakki no iikata, chotto hidoin chau?',"Wasn't the way you said that a bit harsh?") }),
+    you({
+      standard_casual:L('ごめん、言い過ぎたと思う。','Gomen, iisugita to omou.',"Sorry, I think I went too far."),
+      kansai_casual:L('ごめん、言い過ぎたと思うわ。','Gomen, iisugita to omou wa.',"Sorry, I think I went too far.") }),
+    themV({
+      standard_casual:L('本気であんなこと思ってるの？','Honki de anna koto omotteru no?',"Do you really mean that?"),
+      kansai_casual:L('ほんまにあんなこと思ってんの？','Honma ni anna koto omotten no?',"Do you really mean that?") }),
+    you({
+      standard_casual:L('ううん、イライラしてただけなんだ。','Uun, iraira shiteta dake nan da.',"No, I was just irritated."),
+      kansai_casual:L('ううん、イライラしてただけやねん。','Uun, iraira shiteta dake ya nen.',"No, I was just irritated.") }),
+    themV({
+      standard_casual:L('そっか。でも、傷ついたよ。','Sokka. Demo, kizutsuita yo.',"I see. But it hurt."),
+      kansai_casual:L('そっか。でも、傷ついたで。','Sokka. Demo, kizutsuita de.',"I see. But it hurt.") }),
+    you({
+      standard_casual:L('もう二度と言わない。仲直りしよう。','Mou nido to iwanai. Nakanaori shiyou.',"I won't say it again. Let's make up."),
+      kansai_casual:L('もう二度と言わへん。仲直りしよ。','Mou nido to iwahen. Nakanaori shiyo.',"I won't say it again. Let's make up.") }),
+    themV({
+      standard_casual:L('うん、私もごめんね。','Un, watashi mo gomen ne.',"Yeah, I'm sorry too."),
+      kansai_casual:L('うん、私もごめんな。','Un, watashi mo gomen na.',"Yeah, I'm sorry too.") }),
+  ],
+
+  /* ---- Drinking party (coworker: polite / keigo / kansai casual) ---- */
+  'drinking.pouring': [
+    them('どうぞ、お注ぎしますよ。','Douzo, otsugi shimasu yo.',"Here, let me pour for you."),
+    you({
+      standard_polite:L('ありがとうございます。いただきます。','Arigatou gozaimasu. Itadakimasu.',"Thank you. I'll have it."),
+      standard_keigo:L('恐れ入ります。いただきます。','Osoreirimasu. Itadakimasu.',"Thank you, you're too kind. I'll have it."),
+      kansai_casual:L('ありがとう、いただくわ。','Arigatou, itadaku wa.',"Thanks, I'll have some.") }),
+    them('では、私にも注いでもらえますか。','Dewa, watashi ni mo tsuide moraemasu ka.',"Then could you pour for me too?"),
+    you({
+      standard_polite:L('はい、どうぞ。','Hai, douzo.',"Sure, here you go."),
+      standard_keigo:L('はい、お注ぎいたします。','Hai, otsugi itashimasu.',"Yes, allow me to pour."),
+      kansai_casual:L('ええで、どうぞ。','Ee de, douzo.',"Sure, here you go.") }),
+    them('ありがとう。もう1杯いきますか。','Arigatou. Mou ippai ikimasu ka.',"Thanks. Another round?"),
+    you({
+      standard_polite:L('もう十分です。お茶をいただけますか。','Mou juubun desu. Ocha o itadakemasu ka.',"I've had enough. Could I have some tea?"),
+      standard_keigo:L('もう十分いただきました。お茶をお願いできますでしょうか。','Mou juubun itadakimashita. Ocha o onegai dekimasu deshou ka.',"I've had plenty. Could I possibly have some tea?"),
+      kansai_casual:L('もう十分やわ。お茶もらえる？','Mou juubun ya wa. Ocha moraeru?',"I've had enough. Can I get some tea?") }),
+    them('無理しないでくださいね。お茶を頼みましょう。','Muri shinaide kudasai ne. Ocha o tanomimashou.',"Don't push yourself. Let's order some tea."),
+  ],
+  'drinking.nijikai': [
+    them('二次会、行きませんか。','Nijikai, ikimasen ka.',"Shall we go to a second party?"),
+    you({
+      standard_polite:L('すみません、明日早いので今日は帰ります。','Sumimasen, ashita hayai node kyou wa kaerimasu.',"Sorry, I have an early start tomorrow so I'll head home."),
+      standard_keigo:L('申し訳ございません、明日早朝から予定がございますので、失礼いたします。','Moushiwake gozaimasen, ashita souchou kara yotei ga gozaimasu node, shitsurei itashimasu.',"I'm very sorry, I have plans early tomorrow morning, so I'll take my leave."),
+      kansai_casual:L('ごめん、明日早いから今日は帰るわ。','Gomen, ashita hayai kara kyou wa kaeru wa.',"Sorry, I have an early start tomorrow so I'm heading home.") }),
+    them('そうですか。残念ですね。終電は大丈夫ですか。','Sou desu ka. Zannen desu ne. Shuuden wa daijoubu desu ka.',"I see. Too bad. Is your last train okay?"),
+    you({
+      standard_polite:L('はい、まだ間に合います。','Hai, mada maniaimasu.',"Yes, I can still make it."),
+      standard_keigo:L('はい、まだ間に合いますので、ご心配には及びません。','Hai, mada maniaimasu node, goshinpai ni wa oyobimasen.',"Yes, I can still make it, so there's no need to worry."),
+      kansai_casual:L('うん、まだ間に合うで。','Un, mada maniau de.',"Yeah, I can still make it.") }),
+    them('気をつけて帰ってくださいね。今日は楽しかったです。','Ki o tsukete kaette kudasai ne. Kyou wa tanoshikatta desu.',"Get home safe. Today was fun."),
+    you({
+      standard_polite:L('私も楽しかったです。また誘ってください。','Watashi mo tanoshikatta desu. Mata sasotte kudasai.',"I had fun too. Please invite me again."),
+      standard_keigo:L('私も楽しく過ごせました。またぜひお誘いください。','Watashi mo tanoshiku sugosemashita. Mata zehi osasoi kudasai.',"I had a lovely time too. Please do invite me again."),
+      kansai_casual:L('私も楽しかったわ。またぜひ誘ってな。','Watashi mo tanoshikatta wa. Mata zehi sasotte na.',"I had fun too. Invite me again!") }),
+    them('もちろんです。お疲れ様でした。','Mochiron desu. Otsukaresama deshita.',"Of course. Good work today."),
+  ],
+  'drinking.split': [
+    them('そろそろお会計にしましょうか。','Sorosoro okaikei ni shimashou ka.',"Shall we get the bill soon?"),
+    you({
+      standard_polite:L('はい、割り勘でお願いします。','Hai, warikan de onegai shimasu.',"Yes, let's split it."),
+      standard_keigo:L('はい、皆で割り勘にするということでよろしいでしょうか。','Hai, mina de warikan ni suru to iu koto de yoroshii deshou ka.',"Yes, shall we split it among everyone?"),
+      kansai_casual:L('うん、割り勘でええで。','Un, warikan de ee de.',"Yeah, splitting it is fine.") }),
+    them('一人3,500円です。','Hitori sanzen gohyaku-en desu.',"It's 3,500 yen per person."),
+    you({
+      standard_polite:L('5,000円しかないんですが、おつりはありますか。','Gosen-en shika nain desu ga, otsuri wa arimasu ka.',"I only have 5,000 yen. Will there be change?"),
+      standard_keigo:L('5,000円札しかないのですが、お釣りをいただけますでしょうか。','Gosen-en satsu shika nai no desu ga, otsuri o itadakemasu deshou ka.',"I only have a 5,000 yen note. Might I receive change?"),
+      kansai_casual:L('5,000円しかないねんけど、おつりある？','Gosen-en shika nai nen kedo, otsuri aru?',"I only have 5,000 yen. Is there change?") }),
+    them('大丈夫です。1,500円のおつりです。','Daijoubu desu. Sen gohyaku-en no otsuri desu.',"That's fine. Here's 1,500 yen change."),
+    you({
+      standard_polite:L('ありがとうございます。ごちそうさまでした。','Arigatou gozaimasu. Gochisousama deshita.',"Thank you. That was a great meal."),
+      standard_keigo:L('ありがとうございます。本日は大変ごちそうさまでした。','Arigatou gozaimasu. Honjitsu wa taihen gochisousama deshita.',"Thank you. Today's meal was wonderful."),
+      kansai_casual:L('ありがとう。ごちそうさん！','Arigatou. Gochisousan!',"Thanks. That was great!") }),
+    them('お疲れ様でした。','Otsukaresama deshita.',"Good work today."),
+  ],
+};
+
+const LESSONS = {
+  standard: {
+    label:'Standard', ja:'標準語',
+    sections:[
+      { paragraphs:[
+        "Standard Japanese (共通語) is what textbooks teach — based on Tokyo speech, understood everywhere in Japan. It's the safe default with strangers, coworkers, and anyone you don't know well.",
+        'Basic word order is subject → object → verb, with particles marking each part\'s role: は (topic), を (object), に/で (location, time, direction).',
+        'The -masu/-desu form is the everyday polite baseline. Drop it for the plain/dictionary form only with close friends or family.',
+      ], phrases:[
+        ['はじめまして','hajimemashite','Nice to meet you (first meeting only)'],
+        ['よろしくお願いします','yoroshiku onegaishimasu','Please treat me well / nice to meet you'],
+        ['すみません','sumimasen',"Excuse me / I'm sorry"],
+        ['ありがとうございます','arigatou gozaimasu','Thank you'],
+        ['わかりました','wakarimashita','Understood'],
+        ['お願いします','onegaishimasu','Please (when asking for something)'],
+      ]},
+    ],
+  },
+  keigo: {
+    label:'Keigo', ja:'敬語',
+    sections:[
+      { paragraphs:[
+        'Keigo (敬語) is the Japanese system for expressing social relationships through language — used especially in business, customer service, formal situations, and whenever you\u2019re showing respect or humility toward someone.',
+        'Keigo isn\u2019t simply "more polite Japanese." The form you choose depends on who is acting, who is being respected, and the relationship between the speakers.',
+        'Three main categories: sonkeigo (尊敬語) elevates the other person; kenjougo (謙譲語) humbles yourself or your own side; teineigo (丁寧語) just makes the sentence polite, without elevating or humbling anyone.',
+      ], phrases:[
+        ['お世話になっております','Osewa ni natte orimasu','Standard business greeting — thank you for your continued support'],
+        ['承知しました','Shouchi shimashita','Understood / certainly'],
+        ['かしこまりました','Kashikomarimashita','Certainly (service or very formal)'],
+        ['恐れ入ります','Osoreirimasu','Excuse me / sorry to trouble you'],
+        ['申し訳ございません','Moushiwake gozaimasen','I sincerely apologize'],
+        ['失礼いたします','Shitsurei itashimasu','Excuse me / I\u2019ll take my leave'],
+      ]},
+      { heading:'The three main types',
+        paragraphs:[
+          'Teineigo makes your own sentence polite — です and ます are the basic examples.',
+          'Sonkeigo raises the status of the other person when describing their actions. You never use these forms for your own actions.',
+          'Kenjougo lowers your own side when describing your actions toward someone you respect — common with customers, clients, teachers, or superiors.',
+        ],
+        tableCols:['Type','Who is elevated?','Typical use'],
+        table:[
+          ['丁寧語 Teineigo','No one specifically','General polite speech'],
+          ['尊敬語 Sonkeigo','The other person','Talking about a customer, boss, teacher, etc.'],
+          ['謙譲語 Kenjougo','Yourself is lowered','Talking about your own actions toward someone respected'],
+        ]},
+      { heading:'Common honorific verb changes',
+        paragraphs:['A handful of verbs have entirely separate honorific and humble forms. Worth memorizing outright — they show up constantly in business and service Japanese.'],
+        tableCols:['Plain','Sonkeigo','Kenjougo'],
+        table:[
+          ['いる・行く・来る','いらっしゃる','参る・伺う'],
+          ['言う','おっしゃる','申す・申し上げる'],
+          ['見る','ご覧になる','拝見する'],
+          ['する','なさる','いたす'],
+          ['食べる・飲む','召し上がる','いただく'],
+          ['知っている','ご存じだ','存じている'],
+          ['聞く・尋ねる','\u2014','伺う'],
+          ['会う','お会いになる','お目にかかる'],
+          ['思う','\u2014','存じる'],
+        ]},
+      { heading:'Examples in context',
+        paragraphs:['Compare who performs the action — the honorific form describes the other person; the humble form describes yourself.'],
+        tableCols:['Neutral','Keigo','Meaning'],
+        table:[
+          ['田中さんは来ます。','田中さんはいらっしゃいます。','Mr. Tanaka is coming.'],
+          ['社長は言いました。','社長がおっしゃいました。','The president said.'],
+          ['私は見ました。','私は拝見しました。','I saw/looked at it.'],
+          ['私は聞きました。','私が伺いました。','I asked / inquired.'],
+          ['私は食べました。','私がいただきました。','I ate / received.'],
+          ['私は言いました。','私が申し上げました。','I said.'],
+        ]},
+      { heading:'お〜になる / お〜する',
+        paragraphs:[
+          'Many verbs form sonkeigo with お + verb stem + になる — describing the respected person\u2019s action.',
+          'Many form kenjougo with お + verb stem + する／いたす — describing your own action. Not every verb fits this pattern cleanly, so the special honorific verbs above are still worth learning individually.',
+        ],
+        tableCols:['Neutral','Sonkeigo','Kenjougo'],
+        table:[
+          ['読む','お読みになります','お読みします'],
+          ['使う','お使いになります','お使いします'],
+          ['待つ','お待ちになります','お待ちします'],
+          ['調べる','お調べになります','お調べします'],
+          ['利用する','ご利用になります','利用いたします'],
+          ['確認する','ご確認になります','ご確認いたします'],
+        ]},
+      { heading:'お / ご — polite nouns',
+        paragraphs:['お and ご are politeness prefixes. お tends to go with native Japanese words, ご with Sino-Japanese ones — there are exceptions, so it\u2019s best to just learn common expressions as vocabulary.'],
+        tableCols:['Plain','Polite form','Meaning'],
+        table:[
+          ['名前','お名前','name'],
+          ['住所','ご住所','address'],
+          ['予定','ご予定','plans / schedule'],
+          ['注文','ご注文','order'],
+          ['連絡','ご連絡','contact'],
+          ['確認','ご確認','confirmation / checking'],
+          ['意見','ご意見','opinion'],
+          ['家族','ご家族','family'],
+        ]},
+      { heading:'Useful business patterns',
+        paragraphs:['These show up constantly in workplaces, customer service, phone calls, and formal correspondence.'],
+        phrases:[
+          ['確認いたします','Kakunin itashimasu','I will check / confirm'],
+          ['少々お待ちください','Shoushou omachi kudasai','Please wait a moment'],
+          ['お待たせいたしました','Omatase itashimashita','Sorry to have kept you waiting'],
+          ['ご確認ください','Gokakunin kudasai','Please check / confirm'],
+          ['ご連絡いたします','Gorenraku itashimasu','I will contact you'],
+          ['お伺いしたいことがございます','Oukagai shitai koto ga gozaimasu','There is something I would like to ask'],
+          ['こちらでよろしいでしょうか','Kochira de yoroshii deshou ka','Would this be alright?'],
+          ['〜していただけますでしょうか','~shite itadakemasu deshou ka','Would you be able to ~?'],
+        ]},
+      { heading:'Formal doesn\u2019t always mean "better"',
+        paragraphs:[
+          'Keigo should match the situation. Reaching for the most elaborate form when ordinary polite Japanese would be natural can sound stiff or distant.',
+          'お願いします is already fully polite in most everyday situations. お願いいたします is more formal, common in business. The most elaborate option isn\u2019t automatically the correct one.',
+        ],
+        tableCols:['Situation','Natural choice','Level'],
+        table:[
+          ['Asking a stranger','お願いします','Polite'],
+          ['Business request','お願いいたします','Formal / humble'],
+          ['Customer service','かしこまりました','Very formal'],
+          ['Casual workplace request','お願いします','Polite'],
+          ['Formal apology','申し訳ございません','Formal'],
+        ]},
+      { heading:'One phrase, three social distances',
+        paragraphs:[
+          'The same request can climb from casual, to polite, to fully deferential keigo — and each version genuinely belongs to a different situation, not just a "fancier" version of the last.',
+        ],
+        phrases:[
+          ['ちょっと待ってください。','Chotto matte kudasai.','Wait a second. (casual, close relationship)'],
+          ['少々お待ちください。','Shoushou omachi kudasai.','Please wait a moment. (everyday business-polite)'],
+          ['少々お待ちいただけますでしょうか。','Shoushou omachi itadakemasu deshou ka.','Would you mind waiting just a moment? (fully deferential)'],
+        ]},
+      { heading:'Common phrases to recognize',
+        paragraphs:['You\u2019ll hear these constantly from staff, coworkers, receptionists, and business partners — worth recognizing even before you\u2019re ready to produce them yourself.'],
+        phrases:[
+          ['いらっしゃいませ','Irasshaimase','Welcome (staff greeting)'],
+          ['かしこまりました','Kashikomarimashita','Certainly'],
+          ['承知いたしました','Shouchi itashimashita','Understood / certainly'],
+          ['恐れ入りますが','Osoreirimasu ga','Sorry to trouble you, but...'],
+          ['失礼いたします','Shitsurei itashimasu','Excuse me / I\u2019ll take my leave'],
+          ['申し訳ございません','Moushiwake gozaimasen','I sincerely apologize'],
+          ['ありがとうございます','Arigatou gozaimasu','Thank you'],
+          ['ありがとうございました','Arigatou gozaimashita','Thank you for what you did'],
+        ]},
+    ],
+  },
+  kansai: {
+    label:'Kansai-ben', ja:'関西弁',
+    sections:[
+      { paragraphs:[
+        "Kansai-ben isn't one dialect — it's a family of related varieties across Osaka, Kyoto, Kobe, Nara, Wakayama, Shiga, and Mie that can differ substantially from each other. This reference uses casual Osaka speech as the baseline, since that's usually what people mean by \u201cKansai-ben.\u201d",
+      ]},
+      { heading:'Core grammar swaps',
+        paragraphs:['The だ → や shift is the big one — it\u2019s a grammatical change, not just a vocabulary swap.'],
+        tableCols:['Standard','Kansai','Meaning'],
+        table:[
+          ['だ','や','is / am / are'],
+          ['だった','やった','was'],
+          ['だろう','やろ','probably / right?'],
+          ['じゃない','やない・ちゃう',"isn't / that's not it"],
+          ['ない','ん・へん','not'],
+          ['〜ないで','〜んといて',"don't ~"],
+          ['〜てはいけない','〜たらあかん','must not'],
+          ['そうだ','せや',"that's right"],
+          ['違う','ちゃう','different / no'],
+          ['本当','ほんま','really / true'],
+          ['いい','ええ','good'],
+          ['だめ','あかん','no good'],
+          ['とても','めっちゃ','very'],
+          ['どう','どない','how'],
+          ['いくら','なんぼ','how much'],
+          ['たくさん','ようけ','a lot'],
+          ['面白い','おもろい','interesting / funny'],
+        ]},
+      { heading:'や / やった / やろ — statements, past, and \u201cright?\u201d',
+        paragraphs:['や does the job of だ. やった is its past. やろ is for assumptions and confirmation, like だろう／でしょう.'],
+        phrases:[
+          ['これは本や。','Kore wa hon ya.','This is a book.'],
+          ['昨日は休みやった。','Kinou wa yasumi yatta.','Yesterday was a day off.'],
+          ['これ美味いやろ？','Kore umai yaro?','This is good, right?'],
+          ['そうやろな。','Sou yaro na.','Yeah, probably.'],
+        ]},
+      { heading:'Negation: へん, ん, てへん, んかった',
+        paragraphs:[
+          'へん is the most recognizably-Kansai negative. ん is a shorter, blunter version. てへん specifically means "haven\'t done," not "don\'t do." んかった is the past negative.',
+          'Formation shifts by verb — する→せえへん／せん, 来る→きいひん／けえへん, 見る→見いひん — so don\'t treat へん as one mechanical rule.',
+        ],
+        phrases:[
+          ['知らへん。','Shirahen.',"I don't know."],
+          ['食べへん。','Tabehen.',"I don't eat / won't eat."],
+          ['知らん。','Shiran.',"I don't know. (shorter, blunter)"],
+          ['まだ食べてへん。','Mada tabetehen.',"I haven't eaten yet."],
+          ['昨日行かんかった。','Kinou ikankatta.',"I didn't go yesterday."],
+        ]},
+      { heading:'Sentence-final particles',
+        paragraphs:['This is where speech actually starts sounding Kansai, rather than just Standard Japanese with swapped-out words.'],
+        tableCols:['Particle','Feel'],
+        table:[
+          ['や','plain assertion'],
+          ['で','emphasis — "I\'m telling you"'],
+          ['ねん','explanatory — "the thing is..."'],
+          ['やん','shared recognition — "isn\'t it?"'],
+          ['やろ','expecting agreement / confirmation'],
+          ['な','softener, seeking agreement'],
+          ['わ','personal statement'],
+          ['かいな','doubt or surprise'],
+        ],
+        phrases:[
+          ['ほんまやで。','Honma ya de.',"It's really true."],
+          ['知らんねん。','Shiran nen.',"I don't know, that's the thing."],
+          ['ええやん。','Ee yan.',"That's good!"],
+          ['そうやろ？','Sou yaro?','Right?'],
+          ['ほんまかいな。','Honma kaina.','Seriously?'],
+          ['何してんねん！','Nani shiten nen!',"What are you doing?!"],
+        ]},
+      { heading:'ちゃう — correcting, denying, "isn\'t it?"',
+        paragraphs:['From 違う. Used to say something\'s wrong, deny something, or ask "isn\'t it?" — it does a lot of work in casual speech.'],
+        phrases:[
+          ['ちゃうで。','Chau de.',"No, that's not it."],
+          ['これちゃう？','Kore chau?','Isn\'t this it?'],
+          ['それちゃうやろ。','Sore chau yaro.',"That's not right, is it?"],
+        ]},
+      { heading:'あかん — no good, mustn\'t, can\'t',
+        paragraphs:['Stands in for だめ, but stretches further: forbidden, hopeless, or just going badly. Verb + たら + あかん builds "mustn\'t," and 〜なあかん builds "have to."'],
+        phrases:[
+          ['ここ入ったらあかん。','Koko haittara akan.',"You can't go in here."],
+          ['もうあかん。','Mou akan.',"It's hopeless / I'm done."],
+          ['行かなあかん。','Ikan akan.','I have to go.'],
+          ['もう帰らなあかん。','Mou kaerana akan.','I have to go home now.'],
+        ]},
+      { heading:'んといて — asking someone not to do something',
+        paragraphs:['Directed at a person\'s action — a request, not a flat statement of fact.'],
+        phrases:[
+          ['行かんといて。','Ikan toite.',"Don't go."],
+          ['忘れんといてな。','Wasuren toite na.',"Don't forget, okay?"],
+          ['見んといて。','Min toite.',"Don't look."],
+        ]},
+      { heading:'はる — Kansai\'s own respectful form',
+        paragraphs:['Marks respectful reference to someone else\'s action, but sits more relaxed than formal Standard-Japanese honorifics. Especially associated with Kyoto, but heard across the region. Used for others, not yourself.'],
+        phrases:[
+          ['先生が来はった。','Sensei ga kihatta.','The teacher came.'],
+          ['お母さん、もう寝はった？','Okaasan, mou nehatta?','Has your mother gone to bed?'],
+          ['何してはるん？','Nani shiteharun?','What are you doing? (respectful)'],
+        ]},
+      { heading:'てもうた — ended up doing it, regret or completion',
+        paragraphs:['From 〜てしまった. Covers both regret ("damn, I went and did that") and plain completion ("I ended up..."). Often contracts to てもーた in speech.'],
+        phrases:[
+          ['財布なくしてもうた。','Saifu nakushite mouta.','I lost my wallet.'],
+          ['寝てもうた。','Nete mouta.','I fell asleep.'],
+          ['全部食べてもうた。','Zenbu tabete mouta.','I ended up eating all of it.'],
+        ]},
+      { heading:'とる / よる — the 〜ている equivalents',
+        paragraphs:['とる generally covers 〜ている across Kansai. よる carries a separate aspectual shade in some western varieties (like parts of Hyogo) — if you\'re focused on Osaka speech specifically, learn とる first.'],
+        phrases:[
+          ['何しとるん？','Nani shitorun?','What are you doing?'],
+          ['知っとるで。','Shittoru de.','I know.'],
+          ['何しとんねん！','Nani shitonnen!',"What the hell are you doing?!"],
+        ]},
+      { heading:'Conditionals and permission',
+        paragraphs:['やったら (if), 〜んでも (don\'t have to), 〜てもええ (may/can), and かて (even/also) round out a useful little system.'],
+        phrases:[
+          ['暇やったら来てや。','Hima yattara kite ya.',"If you're free, come over."],
+          ['言わんでもええ。','Iwan demo ee.',"You don't have to say it."],
+          ['食べてもええ？','Tabete mo ee?','Can I eat it?'],
+          ['俺かて知らん。','Ore kate shiran.',"I don't know either."],
+        ]},
+      { heading:'こない・そない・あない・どない',
+        paragraphs:['A neat family: this kind of / that kind of / that kind over there / what kind.'],
+        tableCols:['Word','Meaning'],
+        table:[
+          ['こない','this way / this kind'],
+          ['そない','that way / that kind'],
+          ['あない','that way over there'],
+          ['どない','how / what kind'],
+        ]},
+      { heading:'Everyday vocabulary',
+        paragraphs:['Don\'t assume every native speaker uses every word here — some (めっちゃ) have gone nationwide, others are strongly regional or old-fashioned depending on the speaker.'],
+        phrases:[
+          ['ほんま','honma','really / true'],
+          ['せや','seya',"that's right"],
+          ['せやな','seya na',"yeah, that's true"],
+          ['ほな','hona','well then'],
+          ['ほんで','honde','and then / so'],
+          ['ええ','ee','good'],
+          ['おもろい','omoroi','interesting / funny'],
+          ['どない','donai','how / what to do'],
+          ['なんぼ','nanbo','how much'],
+          ['はよ','hayo','quickly / hurry'],
+          ['しゃあない','shaanai',"can't be helped"],
+          ['ようけ','youke','a lot'],
+          ['おおきに','ookini','thanks'],
+        ]},
+      { heading:'One region, many dialects', paragraphs:[
+        'Osaka speech is what most people picture as "Kansai-ben" — direct, energetic, built on や／ねん／で／やん／ちゃう／あかん／へん.',
+        'Kyoto has its own identity, leaning on はる and traditionally softer-sounding phrasing — don\'t mistake that stereotype for a grammar rule, though.',
+        'Kobe/Hyogo sits between Osaka-style speech and western varieties like Banshu-ben, which preserve their own aspect markers such as よる and とる.',
+        'Nara splits north (closely tied to Osaka speech) from a more isolated, distinct south. Wakayama shifts へん toward やん in places and adds its own particles. Shiga leans on Kyoto\'s influence. Mie is a genuine transition zone, with Kansai-style grammar in some parts and growing overlap with Nagoya-area speech further north.',
+      ]},
+      { heading:'Hearing it all together', paragraphs:[
+        'A: 昨日、大阪行ってん。ほんで友達と飯食ってん。 (Kinou, Osaka itten. Honde tomodachi to meshi kutten.) — "I went to Osaka yesterday. Then I ate with a friend."',
+        'B: ほんまに？ めっちゃええな。どこ行ったん？ (Honma ni? Meccha ee na. Doko ittan?) — "Really? That\'s great. Where\'d you go?"',
+        'A: 安い店や。これ、なんぼやと思う？ (Yasui mise ya. Kore, nanbo ya to omou?) — "A cheap place. Guess how much this was?"',
+        'B: せやな…千円くらい？ (Seya na... sen-en kurai?) — "Hmm... maybe 1,000 yen?"',
+        'A: ちゃう、五百円や。 (Chau, gohyaku-en ya.) — "Nope, 500 yen."',
+        'B: ほんまかいな！ (Honma kaina!) — "Seriously?!"',
+      ]},
+      { heading:'One honest limit', paragraphs:[
+        'Grammar and vocabulary get you speaking Kansai-style. Sounding like an actual native speaker also depends on pitch accent and rhythm — the same sentence spoken with Standard-Japanese intonation versus natural Osaka intonation can land completely differently, and that\'s something a written reference like this can\'t fully teach.',
+      ]},
+    ],
+  },
+};
+
+/* =========================================================
+   DATA CHECK
+   Runs at boot and reports (in the console) any place where the
+   scripts and the SETTINGS disagree, so the two can't drift apart:
+     - a scenario with no script, or no setting
+     - a user turn missing a combo its setting allows
+     - a user turn carrying a combo its setting does NOT allow
+     - a partner turn missing (or carrying) a variant the partner
+       will actually speak in
+   ========================================================= */
+function validateScripts(){
+  const problems = [];
+  SCENARIOS.forEach(sc => {
+    const keys = sc.topics ? sc.topics.map(t => `${sc.id}.${t.id}`) : [sc.id];
+    keys.forEach(k => { if(!SCRIPTS[k]) problems.push(`${k}: no script`); });
+    const everyTopicHasSetting = sc.topics && sc.topics.every(t => t.setting);
+    if(!sc.setting && !everyTopicHasSetting) problems.push(`${sc.id}: no setting`);
+    if(sc.setting && !SETTINGS[sc.setting]) problems.push(`${sc.id}: unknown setting "${sc.setting}"`);
+    (sc.topics || []).forEach(t => { if(t.setting && !SETTINGS[t.setting]) problems.push(`${sc.id}.${t.id}: unknown setting "${t.setting}"`); });
+  });
+  Object.entries(SCRIPTS).forEach(([key, turns]) => {
+    const setting = settingFor(key);
+    turns.forEach((turn, i) => {
+      if(!turn.variants) return;
+      const have = Object.keys(turn.variants);
+      if(turn.speaker === 'user'){
+        setting.combos.forEach(c => { if(!have.includes(c)) problems.push(`${key} turn ${i} (you): missing ${c}`); });
+        have.forEach(c => { if(!setting.combos.includes(c)) problems.push(`${key} turn ${i} (you): ${c} isn't allowed in "${setting.label}"`); });
+      } else {
+        const needed = new Set(setting.combos.map(c => partnerComboFor(setting, c)));
+        needed.forEach(c => { if(!have.includes(c)) problems.push(`${key} turn ${i} (partner): missing ${c}`); });
+        have.forEach(c => { if(!needed.has(c)) problems.push(`${key} turn ${i} (partner): ${c} is never spoken in "${setting.label}"`); });
+      }
+    });
+  });
+  problems.forEach(p => console.warn('[script check]', p));
+  return problems;
+}
+
+/* =========================================================
+   STORAGE
+   Uses the host-provided window.storage when available (inside
+   Claude), but falls back to plain localStorage so this remains a
+   real, working standalone HTML file if opened in any browser.
+   ========================================================= */
+const STORE_KEY = 'kaiwa_chat_progress_v3';
+function defaultProgress(){ return { dialect:'standard', politeness:'polite', scenario:'restaurant', topic:'ordering', stats:{} }; }
+// Older saves tagged friend/argument lines as standard_polite even though they
+// are plain-form speech. Move that progress over to standard_casual.
+function migrateProgress(p){
+  Object.keys(p.stats || {}).forEach(k => {
+    if(/^(friend|argument):\d+:standard_polite$/.test(k)){
+      const nk = k.replace(/standard_polite$/, 'standard_casual');
+      if(!p.stats[nk]) p.stats[nk] = p.stats[k];
+      delete p.stats[k];
+    }
+  });
+  return p;
+}
+async function loadProgress(){
+  try{
+    if(window.storage && typeof window.storage.get === 'function'){
+      const res = await window.storage.get(STORE_KEY);
+      if(res && res.value) return migrateProgress(Object.assign(defaultProgress(), JSON.parse(res.value)));
+    }
+  }catch(e){ console.warn('host storage unavailable; trying localStorage'); }
+  try{
+    const raw = localStorage.getItem(STORE_KEY);
+    if(raw) return migrateProgress(Object.assign(defaultProgress(), JSON.parse(raw)));
+  }catch(e){ console.warn('localStorage unavailable'); }
+  return defaultProgress();
+}
+async function saveProgress(p){
+  const raw = JSON.stringify(p);
+  try{
+    if(window.storage && typeof window.storage.set === 'function'){
+      await window.storage.set(STORE_KEY, raw);
+      return;
+    }
+  }catch(e){ console.warn('host storage save failed; trying localStorage'); }
+  try{ localStorage.setItem(STORE_KEY, raw); }
+  catch(e){ console.error('save failed', e); }
+}
+
+/* =========================================================
+   STATE + HELPERS
+   ========================================================= */
+let PROGRESS = null;
+let activeTab = 'chat';
+let session = null;
+let fc = null;
+const app = document.getElementById('app');
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+function statFor(key){
+  const st = PROGRESS.stats[key] || {seen:0, correct:0};
+  // Backward-compatible migration for progress saved by earlier versions.
+  // (`correct` is just "times reviewed" now — tapping a line always counts.)
+  if(typeof st.streak !== 'number') st.streak = 0;
+  if(typeof st.bestStreak !== 'number') st.bestStreak = 0;
+  if(typeof st.lastSeen !== 'number') st.lastSeen = 0;
+  return st;
+}
+function masteryStatus(key){
+  const st = statFor(key);
+  // Requires both experience and recent consistency — three lucky answers a
+  // long time ago no longer keeps something "mastered" forever.
+  if(st.correct >= 3 && st.streak >= 2) return 'mastered';
+  if(st.seen > 0) return 'learning';
+  return 'new';
+}
+
+// Every practice item is a (script, user turn, combo) that actually exists.
+// validateScripts() guarantees these match what each setting allows.
+const PRACTICE_ITEMS = [];
+Object.entries(SCRIPTS).forEach(([scriptKey, turns]) => {
+  turns.forEach((turn, i) => {
+    if(turn.speaker !== 'user') return;
+    Object.keys(turn.variants).forEach(combo => {
+      PRACTICE_ITEMS.push({ scriptKey, turnIndex:i, combo });
+    });
+  });
+});
+// Every (scriptKey, turnIndex) pair that's a user decision point, for Compare.
+const COMPARE_POOL = [];
+Object.entries(SCRIPTS).forEach(([scriptKey, turns]) => {
+  turns.forEach((turn, i) => { if(turn.speaker === 'user') COMPARE_POOL.push({ scriptKey, turnIndex:i }); });
+});
+
+// The combos a learner may pick for a script come from its setting,
+// not from whatever variants happen to exist in the data.
+function availableCombos(scriptKey){ return settingFor(scriptKey).combos; }
+
+function pickHTML(items, activeId, onClickName, attrName){
+  return items.map(it => `
+    <button type="button" class="register-pill ${activeId===it.id ? 'active' : ''} ${it.disabled ? 'disabled' : ''}" ${attrName ? `${attrName}="${it.id}"` : ''}
+      ${it.disabled ? `disabled aria-disabled="true" title="${it.hint || ''}"` : ''} onclick="${it.disabled ? '' : `${onClickName}('${it.id}')`}">
+      <div class="rp-label">${it.label}</div><div class="rp-ja">${it.ja}</div>
+    </button>`).join('');
+}
+function currentScriptKey(){ return scriptKeyFor(PROGRESS.scenario, PROGRESS.topic); }
+function dialectAndPolitenessPillsHTML(){
+  const setting = settingFor(currentScriptKey());
+  const combos = setting.combos.map(parseCombo);
+  const dialectsAvail = new Set(combos.map(c => c.dialect));
+  const politenessAvail = new Set(combos.filter(c => c.dialect === PROGRESS.dialect).map(c => c.politeness));
+  const why = `Not used in “${setting.label}”`;
+  const dialectItems = DIALECTS.map(d => ({ ...d, disabled: !dialectsAvail.has(d.id), hint: why }));
+  const politenessItems = POLITENESS.map(p => ({
+    ...p,
+    disabled: !politenessAvail.has(p.id),
+    hint: dialectsAvail.has(PROGRESS.dialect) ? `${why} with ${DIALECTS.find(d => d.id === PROGRESS.dialect).label}` : why,
+  }));
+  return `
+    <div class="register-row">${pickHTML(dialectItems, PROGRESS.dialect, 'setDialect', 'data-r')}</div>
+    <div class="register-row" style="margin-top:8px;">${pickHTML(politenessItems, PROGRESS.politeness, 'setPoliteness', 'data-p')}</div>
+    <div class="setting-note"><b>${setting.label}.</b> ${setting.note}</div>`;
+}
+function currentCombo(){ return comboId(PROGRESS.dialect, PROGRESS.politeness); }
+function fixComboForCurrentScript(){
+  const combos = availableCombos(currentScriptKey());
+  if(combos.length && !combos.includes(currentCombo())){
+    const { dialect, politeness } = parseCombo(combos[0]);
+    PROGRESS.dialect = dialect; PROGRESS.politeness = politeness;
+  }
+}
+function setDialect(id){
+  PROGRESS.dialect = id;
+  const combos = availableCombos(currentScriptKey());
+  if(!combos.includes(currentCombo())){
+    const fallback = combos.find(c => parseCombo(c).dialect === id);
+    if(fallback) PROGRESS.politeness = parseCombo(fallback).politeness;
+  }
+  saveProgress(PROGRESS); fc = null; renderActiveTab();
+}
+function setPoliteness(id){
+  PROGRESS.politeness = id;
+  const combos = availableCombos(currentScriptKey());
+  if(!combos.includes(currentCombo())){
+    const fallback = combos.find(c => parseCombo(c).politeness === id);
+    if(fallback) PROGRESS.dialect = parseCombo(fallback).dialect;
+  }
+  saveProgress(PROGRESS); fc = null; renderActiveTab();
+}
+
+function tabbarHTML(){
+  const tabs = [
+    {id:'chat', icon:'話', label:'Chat'},
+    {id:'flashcards', icon:'札', label:'Compare'},
+    {id:'lessons', icon:'学', label:'Lessons'},
+    {id:'progress', icon:'歩', label:'Progress'},
+  ];
+  return `<div class="tabbar">
+    ${tabs.map(t => `
+      <button class="tab-btn ${activeTab===t.id?'active':''}" onclick="switchTab('${t.id}')">
+        <span class="tico">${t.icon}</span><span class="tlabel">${t.label}</span>
+      </button>`).join('')}
+  </div>`;
+}
+function switchTab(tab){ activeTab = tab; session = null; fc = null; renderActiveTab(); }
+function renderActiveTab(){
+  if(activeTab === 'chat') renderChatSetupOrScreen();
+  else if(activeTab === 'flashcards') renderCompare();
+  else if(activeTab === 'lessons') renderLessons();
+  else renderProgress();
+}
+
+/* =========================================================
+   CHAT
+   ========================================================= */
+function renderChatSetupOrScreen(){
+  if(session){ renderChatScreen(); return; }
+  const scenario = getScenario(PROGRESS.scenario);
+  app.innerHTML = `
+    <div class="tab-header"><div class="ghost-kanji kanji-font">話</div><h1>会話道</h1><p>Pick a scene, then a dialect and a politeness level. The conversation plays out turn by turn — you choose your line at each step.</p></div>
+    <div class="screen">
+      <div class="scenario-list">
+        ${SCENARIOS.map(s => `
+          <button type="button" class="scenario-row ${PROGRESS.scenario===s.id?'active':''}" onclick="selectScenario('${s.id}')">
+            <div class="sc-icon kanji-font">${s.icon}</div>
+            <div><div class="sc-title">${s.title}</div><div class="sc-ja">${s.ja}</div></div>
+            ${s.topics ? `<span class="sc-group-tag">${s.topics.length} topics</span>` : ''}
+          </button>`).join('')}
+      </div>
+      ${scenario.topics ? `
+        <div class="topic-row">
+          ${scenario.topics.map(t => `<button type="button" class="topic-chip ${PROGRESS.topic===t.id?'active':''}" onclick="selectTopic('${t.id}')">${t.title}</button>`).join('')}
+        </div>` : ''}
+      ${dialectAndPolitenessPillsHTML()}
+      <button class="start-btn" onclick="startConversation()">Start conversation</button>
+    </div>
+    ${tabbarHTML()}`;
+}
+function selectScenario(id){
+  PROGRESS.scenario = id;
+  const scenario = getScenario(id);
+  PROGRESS.topic = scenario.topics ? scenario.topics[0].id : null;
+  fixComboForCurrentScript();
+  saveProgress(PROGRESS);
+  renderChatSetupOrScreen();
+}
+function selectTopic(topicId){
+  PROGRESS.topic = topicId;
+  fixComboForCurrentScript();
+  saveProgress(PROGRESS);
+  renderChatSetupOrScreen();
+}
+
+// Your lines follow the combo you picked. The other person's lines follow
+// the setting's `partner` rule instead — staff stay formal whatever you choose.
+function resolveLine(turn, sess){
+  if(!turn.variants) return { jp:turn.jp, romaji:turn.romaji, en:turn.en };
+  const combo = turn.speaker === 'ai' ? sess.partnerCombo : sess.combo;
+  return turn.variants[combo] || turn.variants[sess.combo] || Object.values(turn.variants)[0];
+}
+function startConversation(){
+  fixComboForCurrentScript();
+  const scriptKey = currentScriptKey();
+  const combo = currentCombo();
+  const setting = settingFor(scriptKey);
+  session = {
+    scriptKey,
+    combo,
+    setting,
+    partnerCombo: partnerComboFor(setting, combo),
+    turns: SCRIPTS[scriptKey],
+    index: 0,
+    history: [],
+    awaitingChoice: false,
+    pending: null,
+    userTurnCount: 0,
+    finished: false,
+  };
+  advanceScript();
+  renderChatScreen();
+}
+function advanceScript(){
+  while(session.index < session.turns.length){
+    const turn = session.turns[session.index];
+    if(turn.speaker === 'ai'){
+      session.history.push({ speaker:'ai', ...resolveLine(turn, session) });
+      session.index++;
+    } else {
+      session.awaitingChoice = true;
+      session.pending = resolveLine(turn, session);
+      session._key = `${session.scriptKey}:${session.index}:${session.combo}`;
+      return;
+    }
+  }
+  session.finished = true;
+}
+function pickOption(){
+  const line = session.pending;
+  session.userTurnCount++;
+
+  const st = statFor(session._key);
+  st.seen++;
+  st.lastSeen = Date.now();
+  st.correct++; // reading/review mode — tapping the line always counts as a rep
+  st.streak++;
+  st.bestStreak = Math.max(st.bestStreak, st.streak);
+  PROGRESS.stats[session._key] = st;
+  saveProgress(PROGRESS);
+
+  session.history.push({ speaker:'user', jp:line.jp, romaji:line.romaji, en:line.en });
+  session.awaitingChoice = false;
+  session.pending = null;
+  session.index++;
+  renderChatScreen();
+}
+function continueScript(){ advanceScript(); renderChatScreen(); }
+function endConversation(){ session = null; renderChatSetupOrScreen(); }
+function restartConversation(){ startConversation(); }
+
+function chatBubbleHTML(h){
+  const side = h.speaker === 'ai' ? 'assistant' : 'user';
+  return `<div class="bubble-row ${side}"><div class="bubble"><div class="b-jp">${h.jp}</div><div class="b-romaji">${h.romaji}</div><div class="b-en">${h.en}</div></div></div>`;
+}
+function renderChatScreen(){
+  const desc = describeScriptKey(session.scriptKey);
+  const meta = comboMeta(session.combo);
+  let footer = '';
+  if(session.finished){
+    footer = `
+      <div class="results-inline">
+        <div class="ri-big kanji-font">会話終了</div>
+        <div class="ri-stats">
+          <div class="stat-card" style="flex:1;"><div class="num">${session.userTurnCount}</div><div class="label">lines reviewed</div></div>
+        </div>
+        <button class="primary-btn" style="margin-top:0;" onclick="endConversation()">Back to scenes</button>
+        <button class="secondary-btn" onclick="restartConversation()">Run it again</button>
+      </div>`;
+  } else if(session.awaitingChoice){
+    footer = `<button class="option-bubble" onclick="pickOption()">${session.pending.jp}</button>`;
+  } else {
+    footer = `<button class="continue-btn" onclick="continueScript()">Continue</button>`;
+  }
+  app.innerHTML = `
+    <div class="chat-header">
+      <button class="icon-btn" onclick="endConversation()" aria-label="Back">&#8592;</button>
+      <div class="ch-info"><div class="ch-title">${desc.icon} ${desc.title}</div><div class="ch-sub">${session.setting.label} · ${meta.label} ${meta.sub}</div></div>
+    </div>
+    <div class="chat-body" id="chat-body">${session.history.map(chatBubbleHTML).join('')}</div>
+    <div class="chat-footer">${footer}</div>`;
+  const body = document.getElementById('chat-body');
+  if(body) body.scrollTop = body.scrollHeight;
+}
+
+/* =========================================================
+   COMPARE (browse, no scoring)
+   ========================================================= */
+function renderCompare(){
+  if(!fc){ fc = { pool: shuffle(COMPARE_POOL), index:0 }; }
+  const t = fc.pool[fc.index];
+  const desc = describeScriptKey(t.scriptKey);
+  const turn = SCRIPTS[t.scriptKey][t.turnIndex];
+  const combos = Object.keys(turn.variants);
+  app.innerHTML = `
+    <div class="tab-header"><div class="ghost-kanji kanji-font">札</div><h1>Compare</h1><p>See how the same line changes shape across the styles that fit this scene.</p></div>
+    <div class="screen">
+      <div class="fc-counter">${fc.index+1} / ${fc.pool.length} — ${desc.icon} ${desc.title}</div>
+      <div class="compare-card">
+        <div class="compare-row">
+          ${combos.map(combo => {
+            const v = turn.variants[combo];
+            const meta = comboMeta(combo);
+            return `<div class="compare-item" style="border-left:3px solid var(${meta.colorVar});">
+              <div class="ci-tag" style="color:var(${meta.colorVar});">${meta.label} · ${meta.sub}</div>
+              <div class="ci-jp kanji-font">${v.jp}</div>
+              <div class="ci-romaji">${v.romaji}</div>
+              <div class="ci-en">${v.en}</div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+      <div class="fc-nav">
+        <button onclick="compareStep(-1)">&#8592; Prev</button>
+        <button class="next" onclick="compareStep(1)">Next &#8594;</button>
+      </div>
+    </div>
+    ${tabbarHTML()}`;
+}
+function compareStep(dir){
+  const len = fc.pool.length;
+  const next = fc.index + dir;
+  if(next >= len || next < 0){ fc.pool = shuffle(fc.pool); fc.index = next >= len ? 0 : len-1; }
+  else fc.index = next;
+  renderCompare();
+}
+
+/* =========================================================
+   LESSONS
+   ========================================================= */
+let lessonTab = 'standard';
+function selectLessonTab(id){ lessonTab = id; renderLessons(); }
+function lessonSectionHTML(sec){
+  const heading = sec.heading ? `<h3>${sec.heading}</h3>` : '';
+  const paras = (sec.paragraphs || []).map(p => `<p>${p}</p>`).join('');
+  const table = sec.table ? `
+    <div class="mini-table ${(sec.tableCols||sec.table[0]).length === 3 ? 'jp-col2' : ''}">
+      ${sec.tableCols ? `<div class="mini-table-row mini-table-head" style="grid-template-columns:repeat(${sec.tableCols.length},1fr);">${sec.tableCols.map(c => `<div class="mtc">${c}</div>`).join('')}</div>` : ''}
+      ${sec.table.map(row => `<div class="mini-table-row" style="grid-template-columns:repeat(${row.length},1fr);">${row.map(c => `<div class="mtc">${c}</div>`).join('')}</div>`).join('')}
+    </div>` : '';
+  const phrases = sec.phrases ? `
+    <div class="phrase-table">
+      ${sec.phrases.map(([jp,romaji,en]) => `<div class="phrase-row"><div class="p-jp kanji-font">${jp}</div><div class="p-romaji">${romaji}</div><div class="p-en">${en}</div></div>`).join('')}
+    </div>` : '';
+  return `<div class="lesson-block">${heading}${paras}${table}${phrases}</div>`;
+}
+function renderLessons(){
+  const l = LESSONS[lessonTab];
+  app.innerHTML = `
+    <div class="tab-header"><div class="ghost-kanji kanji-font">学</div><h1>Lessons</h1><p>A quick reference for each speaking style before you use it in the chat.</p></div>
+    <div class="lesson-tabs">
+      ${Object.entries(LESSONS).map(([id,r]) => `<div class="lesson-tab ${lessonTab===id?'active':''}" onclick="selectLessonTab('${id}')">${r.label}</div>`).join('')}
+    </div>
+    <div class="screen">
+      <div class="lesson-block" style="margin-bottom:6px;">
+        <h3>${l.label} <span style="color:var(--paper-dim); font-weight:400;">${l.ja}</span></h3>
+      </div>
+      ${l.sections.map(lessonSectionHTML).join('')}
+    </div>
+    ${tabbarHTML()}`;
+}
+
+/* =========================================================
+   PROGRESS
+   ========================================================= */
+const ALL_COMBOS = [...new Set(PRACTICE_ITEMS.map(it => it.combo))];
+
+function computeComboStats(combo){
+  const items = PRACTICE_ITEMS.filter(it => it.combo === combo);
+  const counts = { new:0, learning:0, mastered:0 };
+  items.forEach(it => {
+    const key = `${it.scriptKey}:${it.turnIndex}:${it.combo}`;
+    counts[masteryStatus(key)] += 1;
+  });
+  return { total: items.length, ...counts };
+}
+function comboProgressBlockHTML(combo){
+  const meta = comboMeta(combo);
+  const s = computeComboStats(combo);
+  const pct = n => s.total>0 ? (n/s.total)*100 : 0;
+  return `
+    <div class="progress-block">
+      <div class="progress-block-head"><span class="pb-label">${meta.label} · ${meta.sub}</span><span class="pb-count">${s.mastered} / ${s.total} mastered</span></div>
+      <div class="seg-bar">
+        <div style="width:${pct(s.mastered)}%; background:var(--moss);"></div>
+        <div style="width:${pct(s.learning)}%; background:var(--gold);"></div>
+        <div style="width:${pct(s.new)}%; background:var(--indigo-600);"></div>
+      </div>
+      <div class="pb-legend">
+        <span><i style="background:var(--moss)"></i>Mastered ${s.mastered}</span>
+        <span><i style="background:var(--gold)"></i>Learning ${s.learning}</span>
+        <span><i style="background:var(--indigo-600)"></i>New ${s.new}</span>
+      </div>
+    </div>`;
+}
+function leastPracticed(limit){
+  return PRACTICE_ITEMS
+    .map(it => ({ it, st: statFor(`${it.scriptKey}:${it.turnIndex}:${it.combo}`) }))
+    .filter(row => row.st.seen < 3) // not yet "mastered" by repetition
+    .sort((a,b) => a.st.seen - b.st.seen)
+    .slice(0, limit);
+}
+function renderProgress(){
+  let mastered=0, learning=0;
+  PRACTICE_ITEMS.forEach(it => {
+    const key = `${it.scriptKey}:${it.turnIndex}:${it.combo}`;
+    const status = masteryStatus(key);
+    if(status==='mastered') mastered++;
+    if(status==='learning') learning++;
+  });
+  const total = PRACTICE_ITEMS.length;
+  const untouched = leastPracticed(8);
+  app.innerHTML = `
+    <div class="tab-header"><div class="ghost-kanji kanji-font">歩</div><h1>Progress</h1><p>How many times you've reviewed each line, across every dialect × politeness combo that exists.</p></div>
+    <div class="screen">
+      <div class="stat-cards">
+        <div class="stat-card"><div class="num" style="color:var(--moss)">${mastered}</div><div class="label">mastered (3+ reps)</div></div>
+        <div class="stat-card"><div class="num" style="color:var(--gold)">${learning}</div><div class="label">in progress</div></div>
+        <div class="stat-card"><div class="num">${total}</div><div class="label">total lines</div></div>
+      </div>
+      ${ALL_COMBOS.map(comboProgressBlockHTML).join('')}
+      <div class="progress-block">
+        <div class="progress-block-head"><span class="pb-label">Still building</span>${untouched.length ? '<span class="pb-count">least reviewed first</span>' : ''}</div>
+        ${untouched.length ? untouched.map(row => {
+          const desc = describeScriptKey(row.it.scriptKey);
+          const turn = SCRIPTS[row.it.scriptKey][row.it.turnIndex];
+          const line = turn.variants[row.it.combo];
+          const meta = comboMeta(row.it.combo);
+          return `<div class="mini-row"><span class="mini-sit">${desc.icon} ${line.jp}</span><span class="mini-tag">${meta.label}·${meta.sub}</span><span class="mini-score" style="color:var(--paper-dim);">${row.st.seen}/3</span></div>`;
+        }).join('') : '<div class="empty-note">Everything\'s been reviewed 3+ times — nice.</div>'}
+      </div>
+    </div>
+    ${tabbarHTML()}`;
+}
+
+/* =========================================================
+   BOOT
+   ========================================================= */
+(async function boot(){
+  validateScripts();
+  PROGRESS = await loadProgress();
+  // Repair saves that point at a scene/topic that no longer exists.
+  const sc = getScenario(PROGRESS.scenario);
+  if(!sc){ PROGRESS.scenario = 'restaurant'; PROGRESS.topic = null; }
+  else if(sc.topics && !sc.topics.some(t => t.id === PROGRESS.topic)) PROGRESS.topic = sc.topics[0].id;
+  fixComboForCurrentScript();
+  renderActiveTab();
+})();
+</script>
+</body>
+</html>
